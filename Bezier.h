@@ -14,6 +14,7 @@ private:
 public:
 	Bezier(){}
 	~Bezier(){}
+
 	int checkVal(int n, int size){
 		if (n < 0) return 0;
 		else if (n >= size) return size - 1;
@@ -24,13 +25,13 @@ public:
 		int newPX = checkVal(2 * p3.second - p2.second, image.cols);
 		yx.insert(yx.begin() + i, make_pair(newPY, newPX));
 	}
-	void bezierLike(vector<vector<pair<int, int>>> &forBezier, cv::Mat &image){
-		for (int i = 0; i < forBezier.size(); i++){
-			for (int j = 0; j < forBezier[i].size(); j += 3){
-				if (j >= forBezier[i].size() || j + 1 >= forBezier[i].size() || j + 2 >= forBezier[i].size() || j + 3 >= forBezier[i].size()) break;
-				pair<int, int> p2 = make_pair(forBezier[i].at(j + 2).first, forBezier[i].at(j + 2).second);
-				pair<int, int> p3 = make_pair(forBezier[i].at(j + 3).first, forBezier[i].at(j + 3).second);
-				insertBezierPoints(p2, p3, forBezier[i], j + 4, image);	
+	void bezierLike(cv::Mat &srcImg, vector<vector<pair<int, int>>> &contours){
+		for (int i = 0; i < contours.size(); i++){
+			for (int j = 0; j < contours[i].size(); j += 3){
+				if (j >= contours[i].size() || j + 1 >= contours[i].size() || j + 2 >= contours[i].size() || j + 3 >= contours[i].size()) break;
+				pair<int, int> p2 = make_pair(contours[i].at(j + 2).first, contours[i].at(j + 2).second);
+				pair<int, int> p3 = make_pair(contours[i].at(j + 3).first, contours[i].at(j + 3).second);
+				insertBezierPoints(p2, p3, contours[i], j + 4, srcImg);
 			}
 		}
 	}

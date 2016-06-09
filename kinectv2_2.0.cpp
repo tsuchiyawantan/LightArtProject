@@ -8,6 +8,9 @@
 #include "Bezier.h"
 #include "NeonDesign.h"
 #include "Log.h"
+#define HUE 60
+#define SPACESIZE 10
+#define SCALESIZE 1
 
 string hstate[] = { "unknown", "nottracked", "Open", "Closed", "Lasso" };
 string hconf[] = { "low", "high" };
@@ -23,21 +26,19 @@ string str(pair<int, int> left, pair<int, int>right) {
 	ss << str(left) << " " << str(right);
 	return ss.str();
 }
-void doBezier(vector<vector<pair<int, int>>> &forBezier, cv::Mat &image, int hue, Log log){
+void doBezier(vector<vector<pair<int, int>>> &contours, cv::Mat &srcImg){
 	Bezier bezier;
-	bezier.bezierLike(forBezier, image);
-	bezier.drawBezier(forBezier, image, hue);
+	bezier.bezierLike(srcImg, contours);
+	bezier.drawBezier(contours, srcImg, HUE);
 }
-void doDot(cv::Mat &image, int hue, Log log){
+void doDot(cv::Mat &srcImg){
 	Dot dot;
-	dot.setWhiteDots(image, dot.dots);
-	dot.findStart(image, dot.dots, dot.start);
-	dot.makeLine(dot.contours, dot.start, dot.dots, dot.used, image);
-	dot.makeSpace(dot.contours, dot.forBezier);
-	dot.scalable(dot.forBezier);
-	//dot.writeDots(dot.forBezier, image, dot.dots);
-	doBezier(dot.forBezier, image, hue, log);
-	dot.init();
+	dot.setWhiteDots(srcImg);
+	dot.findStart(srcImg);
+	dot.makeLine(srcImg);
+	dot.makeSpace(SPACESIZE);
+	dot.scalable(SCALESIZE);
+	doBezier(dot.forBezier, srcImg);
 }
 
 void main() {
@@ -56,7 +57,7 @@ void main() {
 			cv::imshow("normalize depth image", depth.normalizeDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
 			cv::imshow("contour image", depth.contourImage);
-			doDot(depth.contourImage, 60, log);
+			doDot(depth.contourImage);
 			cv::imshow("complete image", depth.contourImage);
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
