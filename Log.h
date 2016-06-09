@@ -13,33 +13,17 @@ public:
 	string fileName = "";
 	FILE *file = NULL;
 
-	void Initialize(string fileName)
-	{
-	/*	fopen_s(&file, fileName, "w");
-		if (file = NULL){
-			exit(0);
-		}*/
-		
-		// ファイルの名前を保存
-
+	void Initialize(string fileName){
 		// ファイルを開き、ポインタを保存
 		fopen_s(&file, fileName.data(), "w");
 
 		// ファイルが開けなかった場合、
-		if (file == NULL)
-		{
+		if (file == NULL){
 			// エラーメッセージを出し、プログラムを終了します。
 			exit(0);
 		}
 	}
-	void Write(string log)
-	{/*time_t now = time(NULL);
-		struct tm pnow;
-		localtime_s(&pnow, &now);
-		fprintf(file, "[ %02d月%02d日 - %02d:%02d:%02d ]: %s\n",
-			pnow.tm_year + 1900, pnow.tm_mon + 1, pnow.tm_mday,
-			pnow.tm_hour, pnow.tm_min, pnow.tm_sec);*/
-		
+	void Write(string log){
 		tm newTime;
 		__time64_t longTime;
 

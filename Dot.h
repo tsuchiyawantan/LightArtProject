@@ -53,6 +53,10 @@ public:
 	}
 	
 	void setWhiteDots(cv::Mat &image, set<pair<int, int>> &xypair){
+		/*	image.forEach<uchar>([&](uchar &p, const int position[]) -> void{
+			if (p == 255) xypair.insert(make_pair(position[0], position[1]));
+		}
+	);*/
 		for (int y = 0; y < image.rows; y++){
 			for (int x = 0; x < image.cols; x++){
 				unsigned int z = (unsigned int)image.at<uchar>(y, x);
