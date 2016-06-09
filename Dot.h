@@ -52,11 +52,12 @@ public:
 	}
 	
 	void setWhiteDots(cv::Mat &srcImg){
-		/*	srcImg.forEach<uchar>([&](uchar &p, const int position[]) -> void{
+		/*srcImg.forEach<uchar>([&](uchar &p, const int position[]) -> void{
 			if (p == 255) whiteDots.insert(make_pair(position[0], position[1]));
 		}
 	);*/
-		for (int y = 0; y < srcImg.rows; y++){
+
+	for (int y = 0; y < srcImg.rows; y++){
 			for (int x = 0; x < srcImg.cols; x++){
 				unsigned int z = (unsigned int)srcImg.at<uchar>(y, x);
 				if (z == 255){

@@ -47,29 +47,25 @@ public:
 			}
 		}
 	}
-	void setNormalizeDepth(cv::Mat &image){
-		normalizeDepthImage = cv::Mat(image.rows, image.cols, CV_8UC1);
-		for (int i = 0; i < image.rows*image.cols; i++) {
-			int y = i / image.cols;
-			int x = i % image.cols;
+	void setNormalizeDepth(cv::Mat &srcImg){
+		normalizeDepthImage = cv::Mat(srcImg.rows, srcImg.cols, CV_8UC1);
+		for (int i = 0; i < srcImg.rows*srcImg.cols; i++) {
+			int y = i / srcImg.cols;
+			int x = i % srcImg.cols;
 			if (bodyIndexBuffer[i] == 255) normalizeDepthImage.at<UCHAR>(y, x) = 255;
 			else {
-				normalizeDepthImage.at<UCHAR>(y, x) = (255 * (image.at<UINT16>(y, x) - depthMin)) / (depthMax - depthMin);
+				normalizeDepthImage.at<UCHAR>(y, x) = (255 * (srcImg.at<UINT16>(y, x) - depthMin)) / (depthMax - depthMin);
 			}
 		}
 	}
-	void setContour(cv::Mat &image){
-		cv::Mat image2 = image.clone();
-		contourImage = cv::Mat(image.rows, image.cols, CV_8UC1);
+	void setContour(cv::Mat &srcImg){
+		cv::Mat image2 = srcImg.clone();
+		contourImage = cv::Mat(srcImg.rows, srcImg.cols, CV_8UC1);
 		//dilateÇ≈îíÇñcí£
 		cv::dilate(image2, image2, cv::Mat(), cv::Point(-1, -1), 1);
 		//erodeÇ≈îíÇèkè¨
 		cv::erode(image2, image2, cv::Mat(), cv::Point(-1, -1), 3);
-		//canny
 		cv::Canny(image2, contourImage, 20, 75);
-		//cv::Laplacian(image2, contourImage, image2.depth(), 5);
-		//threshold(contourImage, contourImage, 150, 255, CV_THRESH_BINARY);
-		//threshold(contourImage, contourImage, 130, 255, CV_THRESH_BINARY);
 		
 	}
 };
