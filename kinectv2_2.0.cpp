@@ -8,6 +8,7 @@
 #include "Bezier.h"
 #include "NeonDesign.h"
 #include "Log.h"
+#include "CatmullSpline.h"
 #define HUE 60
 #define SPACESIZE 10
 #define SCALESIZE 1
@@ -26,10 +27,18 @@ string str(pair<int, int> left, pair<int, int>right) {
 	ss << str(left) << " " << str(right);
 	return ss.str();
 }
-void doBezier(vector<vector<pair<int, int>>> &contours, cv::Mat &srcImg){
-	Bezier bezier;
-	bezier.bezierLike(srcImg, contours);
-	bezier.drawBezier(contours, srcImg, HUE);
+void doCatmull(cv::Mat &srcImg, vector<vector<pair<int, int>>> &approximationLine){
+	cv::Mat resultImg = cv::Mat(srcImg.rows, srcImg.cols, CV_8UC3, cv::Scalar(0, 0, 0));
+	CatmullSpline catmull;
+	for (int i = 0; i < approximationLine.size(); i++){
+		catmull.drawLine(resultImg, approximationLine[i], HUE);
+	}
+	//SpaceFiltering
+	//catmull.exeGaussian(approximationLine, resultImg);
+	//Opencv Gaussian
+	cv::GaussianBlur(resultImg, resultImg, cv::Size(19, 15), 0, 0);
+	catmull.drawInline(resultImg, HUE);
+	cv::imshow("Catmull Spline", resultImg);
 }
 void doDot(cv::Mat &srcImg){
 	Dot dot;
@@ -38,7 +47,7 @@ void doDot(cv::Mat &srcImg){
 	dot.makeLine(srcImg);
 	dot.makeSpace(SPACESIZE);
 	dot.scalable(SCALESIZE);
-	doBezier(dot.forBezier, srcImg);
+	doCatmull(srcImg, dot.approximationLine);
 }
 
 void main() {

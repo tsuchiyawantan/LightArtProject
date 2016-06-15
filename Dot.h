@@ -16,7 +16,7 @@ public:
 	set<pair<int, int>> whiteDots;
 	vector<pair<int, pair<int, int>>> priorityStart;
 	vector<vector<pair<int, int>>> contours;
-	vector<vector<pair<int, int>>> forBezier;
+	vector<vector<pair<int, int>>> approximationLine;
 	Dot(){
 		init();
 	}
@@ -26,18 +26,18 @@ public:
 		whiteDots.clear();
 		priorityStart.clear();
 		contours.clear();
-		forBezier.clear();
+		approximationLine.clear();
 	}
 	void scalable(int scaleSize){
-		for (int i = 0; i < forBezier.size(); i++){
-			for (int j = 0; j < forBezier[i].size(); j++){
-				int y = (forBezier[i].at(j).first)*scaleSize;
-				int x = (forBezier[i].at(j).second)*scaleSize;
-				forBezier[i].at(j) = make_pair(y, x);
+		for (int i = 0; i < approximationLine.size(); i++){
+			for (int j = 0; j < approximationLine[i].size(); j++){
+				int y = (approximationLine[i].at(j).first)*scaleSize;
+				int x = (approximationLine[i].at(j).second)*scaleSize;
+				approximationLine[i].at(j) = make_pair(y, x);
 			}
 		}
 	}
-	
+
 	void makeSpace(int spaceSize){
 		for (int i = 0; i < contours.size(); i++){
 			vector<pair<int, int>> ctr;
@@ -47,17 +47,17 @@ public:
 				ctr.push_back(make_pair(contours[i].at(j).first, contours[i].at(j).second));
 			}
 			if (j > contours[i].size()) ctr.push_back(make_pair(contours[i].back().first, contours[i].back().second));
-			forBezier.push_back(ctr);
+			approximationLine.push_back(ctr);
 		}
 	}
-	
+
 	void setWhiteDots(cv::Mat &srcImg){
 		/*srcImg.forEach<uchar>([&](uchar &p, const int position[]) -> void{
-			if (p == 255) whiteDots.insert(make_pair(position[0], position[1]));
+		if (p == 255) whiteDots.insert(make_pair(position[0], position[1]));
 		}
-	);*/
+		);*/
 
-	for (int y = 0; y < srcImg.rows; y++){
+		for (int y = 0; y < srcImg.rows; y++){
 			for (int x = 0; x < srcImg.cols; x++){
 				unsigned int z = (unsigned int)srcImg.at<uchar>(y, x);
 				if (z == 255){
