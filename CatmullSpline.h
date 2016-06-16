@@ -5,6 +5,7 @@
 #include <sstream>
 #include <Windows.h>
 #include <time.h>
+#include "ExecuteSpaceFiltering.h"
 #include "NeonDesign.h"
 
 using namespace std;
@@ -49,14 +50,14 @@ public:
 		}
 		return false;
 	}
-	void exeGaussian(vector<vector<pair<int, int>>> &vec, cv::Mat &srcImg){
-		//ExecuteSpaceFiltering spaceFilter(FILTERSIZE);
+	void exeGaussian(vector<vector<pair<int, int>>> &vec, cv::Mat &srcImg, int filtersize){
+		ExecuteSpaceFiltering spaceFilter(filtersize);
 		resultImg = cv::Mat(srcImg.rows, srcImg.cols, CV_8UC3, cv::Scalar(255, 255, 255));
 
 		for (int y = 0; y < srcImg.rows; y++){
 			for (int x = 0; x < srcImg.cols; x++){
 				if (check8(srcImg, y, x)) {
-					//spaceFilter.executeSpaceFilteringYX(y, x, srcImg, resultImg);
+					spaceFilter.executeSpaceFilteringYX(y, x, srcImg, resultImg);
 				}
 			}
 		}

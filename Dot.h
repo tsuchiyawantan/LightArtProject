@@ -52,19 +52,30 @@ public:
 	}
 
 	void setWhiteDots(cv::Mat &srcImg){
-		/*srcImg.forEach<uchar>([&](uchar &p, const int position[]) -> void{
-		if (p == 255) whiteDots.insert(make_pair(position[0], position[1]));
-		}
-		);*/
-
 		for (int y = 0; y < srcImg.rows; y++){
+			unsigned char *p = &srcImg.at<uchar>(y, 0);
 			for (int x = 0; x < srcImg.cols; x++){
-				unsigned int z = (unsigned int)srcImg.at<uchar>(y, x);
-				if (z == 255){
+				if (*p == 255){
 					whiteDots.insert(make_pair(y, x));
 				}
+				p++;
 			}
 		}
+		/*
+		srcImg.forEach<uchar>([&](uchar &p, const int position[]) -> void{
+		if (p == 255) whiteDots.insert(make_pair(position[0], position[1]));
+		}
+		);
+		*/
+
+		/*for (int y = 0; y < srcImg.rows; y++){
+			for (int x = 0; x < srcImg.cols; x++){
+			unsigned int z = (unsigned int)srcImg.at<uchar>(y, x);
+			if (z == 255){
+			whiteDots.insert(make_pair(y, x));
+			}
+			}
+		}*/
 	}
 	int countW8(cv::Mat& srcImg, int y, int x) {
 		int n[8][2] = { { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 } };
@@ -120,7 +131,7 @@ public:
 		vector<pair<int, int>> n = { { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 } };
 		vector<int> j = { 0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7 };
 		int i = 0;
-		while (i<j.size()) {
+		while (i < j.size()) {
 			int d = dir.back();
 			d = d + j.at(i);
 			if (d < 0) d = d + 8;
@@ -155,7 +166,7 @@ public:
 				}
 				//‚±‚±‚Å‚àŒ©‚éB‘¼‚Ì“_‚ª‚¢‚ê‚Îctr‚ÌÅŒã‚É“ü‚ê‚é
 				checkUsed8(srcImg, ctr, dir, y, x);
-				if (ctr.size()>10)
+				if (ctr.size() > 10)
 					contours.push_back(ctr);
 				ctr.clear();
 				dir.clear();
