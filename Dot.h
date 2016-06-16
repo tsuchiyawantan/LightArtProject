@@ -75,7 +75,7 @@ public:
 			whiteDots.insert(make_pair(y, x));
 			}
 			}
-		}*/
+			}*/
 	}
 	int countW8(cv::Mat& srcImg, int y, int x) {
 		int n[8][2] = { { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 } };

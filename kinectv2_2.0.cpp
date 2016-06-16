@@ -41,13 +41,9 @@ void doCatmull(cv::Mat &srcImg, vector<vector<pair<int, int>>> &approximationLin
 	catmull.drawInline(resultImg, HUE);
 	cv::imshow("Catmull Spline", resultImg);
 }
-void doDot(cv::Mat &srcImg, Log log){
+void doDot(cv::Mat &srcImg){
 	Dot dot;
-	clock_t start = clock();
 	dot.setWhiteDots(srcImg);
-	clock_t end = clock();
-	log.Write("ÅúsetWhiteDots: " + to_string((double)(end - start) / CLOCKS_PER_SEC));
-
 	dot.findStart(srcImg);
 	dot.makeLine(srcImg);
 	dot.makeSpace(SPACESIZE);
@@ -70,7 +66,7 @@ void main() {
 			cv::imshow("normalize depth image", depth.normalizeDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
 			cv::imshow("contour image", depth.contourImage);
-			doDot(depth.contourImage, log);
+			doDot(depth.contourImage);
 			cv::imshow("complete image", depth.contourImage);
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
