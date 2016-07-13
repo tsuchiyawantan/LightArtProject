@@ -34,10 +34,6 @@ void doCatmull(cv::Mat &srcImg, vector<vector<pair<int, int>>> &approximationLin
 	for (int i = 0; i < approximationLine.size(); i++){
 		catmull.drawLine(resultImg, approximationLine[i], HUE);
 	}
-	//SpaceFiltering
-	//catmull.exeGaussian(approximationLine, resultImg, FILTERSIZE);
-	//Opencv Gaussian
-	cv::GaussianBlur(resultImg, resultImg, cv::Size(19, 15), 0, 0);
 	catmull.drawInline(resultImg, HUE);
 	cv::imshow("Catmull Spline", resultImg);
 }

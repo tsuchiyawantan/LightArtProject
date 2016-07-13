@@ -13,7 +13,6 @@ using namespace std;
 class CatmullSpline{
 private:
 public:
-	vector<pair<int, int>> contour;
 	vector<vector<pair<int, int>>> catmullLine;
 	cv::Mat resultImg;
 
@@ -53,7 +52,6 @@ public:
 	void exeGaussian(vector<vector<pair<int, int>>> &vec, cv::Mat &srcImg, int filtersize){
 		ExecuteSpaceFiltering spaceFilter(filtersize);
 		resultImg = cv::Mat(srcImg.rows, srcImg.cols, CV_8UC3, cv::Scalar(255, 255, 255));
-
 		for (int y = 0; y < srcImg.rows; y++){
 			for (int x = 0; x < srcImg.cols; x++){
 				if (check8(srcImg, y, x)) {
@@ -76,13 +74,54 @@ public:
 				circle(srcImg, cv::Point(x, y), 0.5, cv::Scalar(bgr.at(0), bgr.at(1), bgr.at(2)), -1, 4);
 			}
 		}
+
 	}
+
+	void doGaussian(vector<pair<int, int>> &catCtr, cv::Mat &srcImg){
+		int mid = catCtr.size() / 2;
+		int filtersize = mid;
+		int y = catCtr.at(mid).first;
+		int x = catCtr.at(mid).second;
+		int x1 = x - filtersize;
+		int y1 = y - filtersize;
+		int y2 = filtersize * 2;
+		int x2 = filtersize * 2;
+
+		fixSize(y1, x1, srcImg);
+		fixSize2(y1, x1, y2, x2, srcImg);
+
+		cv::Mat regionOfImage(srcImg, cv::Rect(x1, y1, x2, y2));
+		cv::GaussianBlur(regionOfImage, regionOfImage, cv::Size(11, 11), 0, 0);
+	}
+
+	void fixSize(int &y, int &x, cv::Mat &srcImg){
+		if (x < 0) { x = 0; }
+		if (y < 0) { y = 0; }
+		if (x >= srcImg.cols){ x = srcImg.cols - 1; }
+		if (y >= srcImg.rows){ y = srcImg.rows - 1; }
+	}
+	void fixSize2(int y1, int x1, int &y_sub, int &x_sub, cv::Mat &srcImg){
+		int y2 = y1 + y_sub;
+		int x2 = x1 + x_sub;
+
+		if (y2 >= srcImg.rows) {
+			y2 = srcImg.rows - 1;
+			y_sub = y2 - y1;
+		}
+		if (x2 >= srcImg.cols) {
+			x2 = srcImg.cols - 1;
+			x_sub = x2 - x1;
+		}
+	}
+
 	void drawLine(cv::Mat &srcImg, vector<pair<int, int>> &contours, int hue){
 		NeonDesign design;
 		vector<int> bgr = { 0, 0, 0 };
 		vector<pair<int, int>> ctr;
+		vector<pair<int, int>> catCtr;
 		design.rgb(hue, 255, 255 - 100, bgr);
 		for (int i = 0; i < contours.size(); i++){
+
 			int y = contours.at(i).first;
 			int x = contours.at(i).second;
 			if (i >= contours.size() || i + 1 >= contours.size() || i + 2 >= contours.size() || i + 3 >= contours.size()) break;
@@ -91,25 +130,34 @@ public:
 					y = catmullRomFirstLast(contours.at(0).first, contours.at(1).first, t);
 					x = catmullRomFirstLast(contours.at(0).second, contours.at(1).second, t);
 					ctr.push_back(make_pair(y, x));
+					catCtr.push_back(make_pair(y, x));
 					circle(srcImg, cv::Point(x, y), 2, cv::Scalar(bgr.at(0), bgr.at(1), bgr.at(2)), -1, 4);
 				}
+				doGaussian(catCtr, srcImg);
+				catCtr.clear();
 			}
 			for (double t = 0; t <= 1.0; t += 0.05){
 				y = catmullRom(contours.at(i).first, contours.at(i + 1).first, contours.at(i + 2).first, contours.at(i + 3).first, t);
 				x = catmullRom(contours.at(i).second, contours.at(i + 1).second, contours.at(i + 2).second, contours.at(i + 3).second, t);
 				ctr.push_back(make_pair(y, x));
+				catCtr.push_back(make_pair(y, x));
 				circle(srcImg, cv::Point(x, y), 2, cv::Scalar(bgr.at(0), bgr.at(1), bgr.at(2)), -1, 4);
 			}
+			doGaussian(catCtr, srcImg);
+			catCtr.clear();
 			if (i == contours.size() - 4){
 				for (double t = 0; t <= 1.0; t += 0.1){
 					y = catmullRomFirstLast(contours.at(contours.size() - 2).first, contours.at(contours.size() - 1).first, t);
 					x = catmullRomFirstLast(contours.at(contours.size() - 2).second, contours.at(contours.size() - 1).second, t);
 					ctr.push_back(make_pair(y, x));
+					catCtr.push_back(make_pair(y, x));
 					circle(srcImg, cv::Point(x, y), 2, cv::Scalar(bgr.at(0), bgr.at(1), bgr.at(2)), -1, 4);
 				}
+				doGaussian(catCtr, srcImg);
+				catCtr.clear();
 			}
-		}	
-		catmullLine.push_back(ctr);
 
+		}
+		catmullLine.push_back(ctr);
 	}
 };
