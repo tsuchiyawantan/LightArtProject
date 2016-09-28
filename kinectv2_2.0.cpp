@@ -2,7 +2,6 @@
 #include <sstream>
 #include <time.h>
 #include "stdafx.h"
-#include "KinectControl.h"
 #include "Depth.h"
 #include "Dot.h"
 #include "NeonDesign.h"
@@ -48,7 +47,6 @@ void doDot(cv::Mat &srcImg, cv::Mat &resultImg){
 
 void main() {
 	try {
-		KinectControl kinect;
 		Depth depth;
 		Log log;
 		log.Initialize("logPOINTER.txt");

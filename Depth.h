@@ -4,7 +4,6 @@
 #include <Kinect.h>
 #include <opencv2/opencv.hpp>
 #include <atlbase.h>
-#include "KinectControl.h"
 #include "NtKinect.h"
 
 
