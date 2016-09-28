@@ -8,6 +8,7 @@
 #include "NeonDesign.h"
 #include "Log.h"
 #include "CatmullSpline.h"
+#include "NtKinect.h"
 #define HUE 60
 #define SPACESIZE 10
 #define SCALESIZE 1

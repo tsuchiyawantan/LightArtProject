@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <atlbase.h>
 #include "KinectControl.h"
+#include "NtKinect.h"
 
 
 #ifdef USE_AUDIO
@@ -16,7 +17,7 @@ using namespace std;
 #define HIGHT 200
 #define WIDTH 200
 
-class Depth : public KinectControl
+class Depth : public NtKinect
 
 {
 	// ******** depth *******
