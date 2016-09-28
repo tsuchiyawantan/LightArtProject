@@ -28,23 +28,22 @@ string str(pair<int, int> left, pair<int, int>right) {
 	ss << str(left) << " " << str(right);
 	return ss.str();
 }
-void doCatmull(cv::Mat &srcImg, vector<vector<pair<int, int>>> &approximationLine){
-	cv::Mat resultImg = cv::Mat(srcImg.rows, srcImg.cols, CV_8UC3, cv::Scalar(0, 0, 0));
+void doCatmull(cv::Mat &srcImg, cv::Mat &resultImg, vector<vector<pair<int, int>>> &approximationLine){
 	CatmullSpline catmull;
 	for (int i = 0; i < approximationLine.size(); i++){
 		catmull.drawLine(resultImg, approximationLine[i], HUE);
 	}
+	cv::blur(resultImg, resultImg, cv::Size(9, 9));
 	catmull.drawInline(resultImg, HUE);
-	cv::imshow("Catmull Spline", resultImg);
 }
-void doDot(cv::Mat &srcImg){
+void doDot(cv::Mat &srcImg, cv::Mat &resultImg){
 	Dot dot;
 	dot.setWhiteDots(srcImg);
 	dot.findStart(srcImg);
 	dot.makeLine(srcImg);
 	dot.makeSpace(SPACESIZE);
 	dot.scalable(SCALESIZE);
-	doCatmull(srcImg, dot.approximationLine);
+	doCatmull(srcImg, resultImg, dot.approximationLine);
 }
 
 void main() {
@@ -57,13 +56,17 @@ void main() {
 			clock_t start = clock();
 			depth.setBodyDepth();
 			clock_t end = clock();
-			cv::imshow("body index depth", depth.bodyDepthImage);
+			//cv::imshow("body index depth", depth.bodyDepthImage);
 			depth.setNormalizeDepth(depth.bodyDepthImage);
-			cv::imshow("normalize depth image", depth.normalizeDepthImage);
+			//cv::imshow("normalize depth image", depth.normalizeDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
-			cv::imshow("contour image", depth.contourImage);
-			doDot(depth.contourImage);
-			cv::imshow("complete image", depth.contourImage);
+			//cv::imshow("contour image", depth.contourImage);
+			cv::Mat resultImg = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
+
+			doDot(depth.contourImage, resultImg);
+			//cv::imshow("complete image", depth.contourImage);
+			cv::imshow("Catmull Spline", resultImg);
+
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
 		}

@@ -61,21 +61,6 @@ public:
 				p++;
 			}
 		}
-		/*
-		srcImg.forEach<uchar>([&](uchar &p, const int position[]) -> void{
-		if (p == 255) whiteDots.insert(make_pair(position[0], position[1]));
-		}
-		);
-		*/
-
-		/*for (int y = 0; y < srcImg.rows; y++){
-			for (int x = 0; x < srcImg.cols; x++){
-			unsigned int z = (unsigned int)srcImg.at<uchar>(y, x);
-			if (z == 255){
-			whiteDots.insert(make_pair(y, x));
-			}
-			}
-			}*/
 	}
 	int countW8(cv::Mat& srcImg, int y, int x) {
 		int n[8][2] = { { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 } };
@@ -148,10 +133,10 @@ public:
 	}
 	void makeLine(cv::Mat &srcImg){
 		vector<pair<int, int>> ctr;//一つの点列の入れ物
+		vector<int> dir;
 		for (auto itr = priorityStart.begin(); itr != priorityStart.end(); ++itr){
 			//startがすでに使った点でなければ
 			if (!isExistS((*itr).second.first, (*itr).second.second, usedDots)){
-				vector<int> dir;
 				int y = (*itr).second.first;
 				int x = (*itr).second.second;
 				//端点であろうx, y
