@@ -8,7 +8,7 @@
 #include "Log.h"
 #include "CatmullSpline.h"
 #include "NtKinect.h"
-#define HUE 60
+#define HUE 180
 #define SPACESIZE 10
 #define SCALESIZE 1
 #define FILTERSIZE 81
@@ -50,6 +50,7 @@ void main() {
 		Depth depth;
 		Log log;
 		log.Initialize("logPOINTER.txt");
+		//int count = 0;
 		while (1) {
 			clock_t start = clock();
 			depth.setBodyDepth();
@@ -63,8 +64,10 @@ void main() {
 
 			doDot(depth.contourImage, resultImg);
 			//cv::imshow("complete image", depth.contourImage);
+		//cv:imwrite("image/img" + to_string(count) + ".png", resultImg);
 			cv::imshow("Catmull Spline", resultImg);
-
+		
+			//count++;
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
 		}
