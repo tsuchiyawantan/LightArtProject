@@ -8,6 +8,7 @@
 #include "Log.h"
 #include "CatmullSpline.h"
 #include "NtKinect.h"
+#include "Effect.h"
 #define HUE 10
 #define SPACESIZE 10
 #define SCALESIZE 1
@@ -15,7 +16,7 @@
 
 Dot dot;
 CatmullSpline catmull;
-vector<cv::Mat> after_img;
+Effect effect;
 
 void doCatmull(cv::Mat &srcImg, cv::Mat &resultImg, vector<vector<pair<int, int>>> &approximationLine){
 	catmull.init();
@@ -24,7 +25,6 @@ void doCatmull(cv::Mat &srcImg, cv::Mat &resultImg, vector<vector<pair<int, int>
 	}
 	cv::blur(resultImg, resultImg, cv::Size(9, 9));
 	catmull.drawInline(resultImg, HUE);
-	after_img.push_back(resultImg);
 }
 void doDot(cv::Mat &srcImg, cv::Mat &resultImg){
 	dot.init();
@@ -35,14 +35,27 @@ void doDot(cv::Mat &srcImg, cv::Mat &resultImg){
 	dot.scalable(SCALESIZE);
 	doCatmull(srcImg, resultImg, dot.approximationLine);
 }
+//àÍî‘ç≈èâÇ…Ç∑Ç≈Ç…ê^Ç¡çïÇÃmatÇ™arayimg_arrayÇ…ì¸Ç¡ÇƒÇÈ
+void doEffect(cv::Mat &src_img, vector<cv::Mat> &afterimg_array){
+	cv::Mat tmp_img;
+	bitwise_or(afterimg_array.at(0), afterimg_array.at(1), tmp_img);
+	bitwise_or(tmp_img, afterimg_array.at(2), tmp_img);
+	bitwise_or(tmp_img, src_img, tmp_img);
 
+	afterimg_array.erase(afterimg_array.begin());
+	cv::GaussianBlur(src_img, src_img, cv::Size(11, 11), 0, 0);
+	afterimg_array.push_back(src_img);
+	src_img = tmp_img;
+}
 void main() {
 	try {
 		Depth depth;
 		Log log;
 		log.Initialize("logPOINTER.txt");
-		int count = 0;	
-		//cv::Mat result_img = cv::Mat(100, 100, CV_8UC3, cv::Scalar(0, 0, 0));
+		int count = 0;
+		cv::Mat result_img;
+		vector<cv::Mat> afterimg_array;
+		cv::Mat black_img;
 		while (1) {
 			clock_t start = clock();
 			depth.setBodyDepth();
@@ -52,15 +65,18 @@ void main() {
 			//cv::imshow("normalize depth image", depth.normalizeDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
 			//cv::imshow("contour image", depth.contourImage);
-			cv::Mat result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
-
+			result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 			doDot(depth.contourImage, result_img);
 			//cv::imshow("complete image", depth.contourImage);
 			//cv:imwrite("image/img" + to_string(count) + ".png", resultImg);
+			if (count<3){
+				cv::GaussianBlur(result_img, result_img, cv::Size(11, 11), 0, 0);
+				afterimg_array.push_back(result_img);
+			}
+			else
+				doEffect(result_img, afterimg_array);
+
 			cv::imshow("Catmull Spline", result_img);
-			//doEffect();
-
-
 			count++;
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
