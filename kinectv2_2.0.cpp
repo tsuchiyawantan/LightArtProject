@@ -13,7 +13,7 @@
 #define SPACESIZE 10
 #define SCALESIZE 1
 #define FILTERSIZE 81
-#define AFTER_FRAME 5
+#define AFTER_FRAME 3
 
 Dot dot;
 CatmullSpline catmull;
