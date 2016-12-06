@@ -37,27 +37,26 @@ void doDot(cv::Mat &srcImg, cv::Mat &resultImg){
 	dot.scalable(SCALESIZE);
 	doCatmull(srcImg, resultImg, dot.approximationLine);
 }
-//一番最初にすでに真っ黒のmatがarayimg_arrayに入ってる
+
 void doEffect(cv::Mat &src_img, vector<cv::Mat> &afterimg_array){
-	cv::Mat tmp_img = afterimg_array.at(0);
+	cv::Mat tmp_img = src_img.clone();
 	cv::Mat src_multi_img = src_img.clone();
-	//bitwise_or(afterimg_array.at(0), afterimg_array.at(1), tmp_img);
-	//bitwise_or(tmp_img, afterimg_array.at(2), tmp_img);
-	//bitwise_or(tmp_img, src_img, tmp_img);
-	
-	//afterimg_arrayに入ってる画像とsrcをor演算子でひとまとめにする。tmp_imgで返す
-	//afterimg_array配列に1/Xを足し算していく
-	for (int i = 1; i < afterimg_array.size(); i++){
-		bitwise_or(tmp_img, afterimg_array.at(i), tmp_img);
-	}
 
-	afterimg_array.erase(afterimg_array.begin());
-//	cv::GaussianBlur(src_img, src_img, cv::Size(11, 11), 0, 0);
+	if (afterimg_array.size() != 0){
+		tmp_img = afterimg_array.at(0);
+		//afterimg_arrayに入ってる画像とsrcをor演算子でひとまとめにする。tmp_imgで返す
+		//afterimg_array配列に1/Xを足し算していく
+		for (int i = 0; i < afterimg_array.size(); i++){
+			bitwise_or(tmp_img, afterimg_array.at(i), tmp_img);
+		}
 
-	//afterimg_array配列に1/Xを足し算していく
-	for (int i = 0; i < afterimg_array.size(); i++){
-		effect.applyFilteringAdd(afterimg_array.at(i), 1.0/AFTER_FRAME);
-		
+		if(afterimg_array.size() > AFTER_FRAME) afterimg_array.erase(afterimg_array.begin());
+
+		//afterimg_array配列に1/Xを足し算していく
+		for (int i = 0; i < afterimg_array.size(); i++){
+			effect.applyFilteringAdd(afterimg_array.at(i), 1.0 / AFTER_FRAME);
+
+		}
 	}
 	effect.applyFilteringMulti(src_img, src_multi_img, 1.0 / AFTER_FRAME);
 	afterimg_array.push_back(src_multi_img);
@@ -87,14 +86,14 @@ void main() {
 			//cv:imwrite("image/img" + to_string(count) + ".png", resultImg);
 			cv::imshow("before afterimg", result_img);
 
-			if (count<AFTER_FRAME){
-				cv::Mat resultimg_cp = result_img.clone();
-				//RGBに1/3、2/3かける関数
-				effect.applyFilteringMulti(result_img, resultimg_cp, (double)((AFTER_FRAME-count)/AFTER_FRAME));
-				//cv::GaussianBlur(resultimg_cp, resultimg_cp, cv::Size(11, 11), 0, 0);
-				afterimg_array.push_back(resultimg_cp);
-			}
-			else
+			//if (count<AFTER_FRAME){
+			//	cv::Mat resultimg_cp = result_img.clone();
+			//	//RGBに1/3、2/3かける関数
+			//	effect.applyFilteringMulti(result_img, resultimg_cp, (double)((AFTER_FRAME-count)/AFTER_FRAME));
+			//	//cv::GaussianBlur(resultimg_cp, resultimg_cp, cv::Size(11, 11), 0, 0);
+			//	afterimg_array.push_back(resultimg_cp);
+			//}
+			//else
 				doEffect(result_img, afterimg_array);
 
 			cv::imshow("Catmull Spline", result_img);
