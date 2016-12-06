@@ -18,6 +18,9 @@ public:
 	CatmullSpline(){}
 	~CatmullSpline(){}
 
+	void init(){
+		catmullLine.clear();
+	}
 	double catmullRom(double p0, double p1, double p2, double p3, double t){
 		double t2 = t*t;
 		double t3 = t2*t;
