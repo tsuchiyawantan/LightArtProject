@@ -39,17 +39,10 @@ void doDot(cv::Mat &srcImg, cv::Mat &resultImg){
 }
 
 void addAfterImg(cv::Mat &src_img, vector<cv::Mat> &afterimg_array){
-	cv::Mat tmp_img = src_img.clone();
 	cv::Mat src_multi_img = src_img.clone();
 
 	if (afterimg_array.size() != 0){
-		tmp_img = afterimg_array.at(0);
-		//afterimg_array‚É“ü‚Á‚Ä‚é‰æ‘œ‚Æsrc‚ğor‰‰Zq‚Å‚Ğ‚Æ‚Ü‚Æ‚ß‚É‚·‚éBtmp_img‚Å•Ô‚·
-		//afterimg_array”z—ñ‚É1/X‚ğ‘«‚µZ‚µ‚Ä‚¢‚­
-		
-
 		if(afterimg_array.size() > AFTER_FRAME) afterimg_array.erase(afterimg_array.begin());
-
 		//afterimg_array”z—ñ‚É1/X‚ğ‘«‚µZ‚µ‚Ä‚¢‚­
 		for (int i = 0; i < afterimg_array.size(); i++){
 			effect.applyFilteringAdd(afterimg_array.at(i), 1.0 / AFTER_FRAME);
@@ -65,7 +58,6 @@ void main() {
 		Depth depth;
 		Log log;
 		log.Initialize("logPOINTER.txt");
-		int count = 1;
 		cv::Mat result_img;
 		vector<cv::Mat> afterimg_array;
 		cv::Mat black_img;
@@ -93,17 +85,11 @@ void main() {
 
 				//ã‚Å“¾‚ç‚ê‚½result_img‚ğ”wŒi‚É‚µ‚Äü‚ğã‘‚«‚·‚é
 				doDot(depth.contourImage, result_img);
-				cv::imshow("tes", result_img);
-
 				//‚±‚Ì‚Ìü‚ğarray‚É’Ç‰Á‚·‚é
 				addAfterImg(result_img, afterimg_array);
 			}
-			//cv::imshow("complete image", depth.contourImage);
-			//cv:imwrite("image/img" + to_string(count) + ".png", resultImg);
-			//cv::imshow("before afterimg", result_img);
 
-			cv::imshow("Catmull Spline", result_img);
-			count++;
+			cv::imshow("Result", result_img);
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
 		}
