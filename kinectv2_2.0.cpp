@@ -38,7 +38,7 @@ void doDot(cv::Mat &srcImg, cv::Mat &resultImg){
 	doCatmull(srcImg, resultImg, dot.approximationLine);
 }
 
-void doEffect(cv::Mat &src_img, vector<cv::Mat> &afterimg_array){
+void addAfterImg(cv::Mat &src_img, vector<cv::Mat> &afterimg_array){
 	cv::Mat tmp_img = src_img.clone();
 	cv::Mat src_multi_img = src_img.clone();
 
@@ -46,9 +46,7 @@ void doEffect(cv::Mat &src_img, vector<cv::Mat> &afterimg_array){
 		tmp_img = afterimg_array.at(0);
 		//afterimg_array‚É“ü‚Á‚Ä‚é‰æ‘œ‚Æsrc‚ğor‰‰Zq‚Å‚Ğ‚Æ‚Ü‚Æ‚ß‚É‚·‚éBtmp_img‚Å•Ô‚·
 		//afterimg_array”z—ñ‚É1/X‚ğ‘«‚µZ‚µ‚Ä‚¢‚­
-		for (int i = 0; i < afterimg_array.size(); i++){
-			bitwise_or(tmp_img, afterimg_array.at(i), tmp_img);
-		}
+		
 
 		if(afterimg_array.size() > AFTER_FRAME) afterimg_array.erase(afterimg_array.begin());
 
@@ -60,8 +58,8 @@ void doEffect(cv::Mat &src_img, vector<cv::Mat> &afterimg_array){
 	}
 	effect.applyFilteringMulti(src_img, src_multi_img, 1.0 / AFTER_FRAME);
 	afterimg_array.push_back(src_multi_img);
-	src_img = tmp_img;
 }
+
 void main() {
 	try {
 		Depth depth;
@@ -81,20 +79,28 @@ void main() {
 			depth.setContour(depth.normalizeDepthImage);
 			//cv::imshow("contour image", depth.contourImage);
 			result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
-			doDot(depth.contourImage, result_img);
+			//1‰ñ–Ú‚Ídot‚©‚çn‚ß‚ÄA2‰ñ–ÚˆÈ~‚Íeffect‚©‚¯‚½result‚ª‚Ù‚µ‚¢‚Ì‚ÅAeffect‚©‚çn‚ß‚é
+			if (afterimg_array.size() == 0){
+				doDot(depth.contourImage, result_img);
+			//1–‡–Ú‚ğ–¾‚é‚³‰º‚°‚Äarray‚É•Û‘¶
+				addAfterImg(result_img, afterimg_array);
+			}
+			else {
+				//array‚É“ü‚Á‚Ä‚¢‚é‰æ‘œ‚ğor‰‰Zq‚Å‚Â‚È‚°‚Ä”wŒi‚É‚·‚é
+				for (int i = 0; i < afterimg_array.size(); i++){
+					bitwise_or(result_img, afterimg_array.at(i), result_img);
+				}				
+
+				//ã‚Å“¾‚ç‚ê‚½result_img‚ğ”wŒi‚É‚µ‚Äü‚ğã‘‚«‚·‚é
+				doDot(depth.contourImage, result_img);
+				cv::imshow("tes", result_img);
+
+				//‚±‚Ì‚Ìü‚ğarray‚É’Ç‰Á‚·‚é
+				addAfterImg(result_img, afterimg_array);
+			}
 			//cv::imshow("complete image", depth.contourImage);
 			//cv:imwrite("image/img" + to_string(count) + ".png", resultImg);
-			cv::imshow("before afterimg", result_img);
-
-			//if (count<AFTER_FRAME){
-			//	cv::Mat resultimg_cp = result_img.clone();
-			//	//RGB‚É1/3A2/3‚©‚¯‚éŠÖ”
-			//	effect.applyFilteringMulti(result_img, resultimg_cp, (double)((AFTER_FRAME-count)/AFTER_FRAME));
-			//	//cv::GaussianBlur(resultimg_cp, resultimg_cp, cv::Size(11, 11), 0, 0);
-			//	afterimg_array.push_back(resultimg_cp);
-			//}
-			//else
-				doEffect(result_img, afterimg_array);
+			//cv::imshow("before afterimg", result_img);
 
 			cv::imshow("Catmull Spline", result_img);
 			count++;
