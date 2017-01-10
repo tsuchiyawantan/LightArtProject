@@ -9,7 +9,7 @@
 #include "CatmullSpline.h"
 #include "NtKinect.h"
 #include "Effect.h"
-#define HUE 10
+#define HUE 40
 #define SPACESIZE 10
 #define SCALESIZE 1
 #define FILTERSIZE 81
@@ -72,22 +72,23 @@ void main() {
 			//cv::imshow("contour image", depth.contourImage);
 			result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 			//1‰ñ–Ú‚Ídot‚©‚çn‚ß‚ÄA2‰ñ–ÚˆÈ~‚Íeffect‚©‚¯‚½result‚ª‚Ù‚µ‚¢‚Ì‚ÅAeffect‚©‚çn‚ß‚é
-			if (afterimg_array.size() == 0){
-				doDot(depth.contourImage, result_img);
-			//1–‡–Ú‚ğ–¾‚é‚³‰º‚°‚Äarray‚É•Û‘¶
-				addAfterImg(result_img, afterimg_array);
-			}
-			else {
-				//array‚É“ü‚Á‚Ä‚¢‚é‰æ‘œ‚ğor‰‰Zq‚Å‚Â‚È‚°‚Ä”wŒi‚É‚·‚é
-				for (int i = 0; i < afterimg_array.size(); i++){
-					bitwise_or(result_img, afterimg_array.at(i), result_img);
-				}				
+			//if (afterimg_array.size() == 0){
+			//	doDot(depth.contourImage, result_img);
+			////1–‡–Ú‚ğ–¾‚é‚³‰º‚°‚Äarray‚É•Û‘¶
+			//	addAfterImg(result_img, afterimg_array);
+			//}
+			//else {
+			//	//array‚É“ü‚Á‚Ä‚¢‚é‰æ‘œ‚ğor‰‰Zq‚Å‚Â‚È‚°‚Ä”wŒi‚É‚·‚é
+			//	for (int i = 0; i < afterimg_array.size(); i++){
+			//		bitwise_or(result_img, afterimg_array.at(i), result_img);
+			//	}				
 
-				//ã‚Å“¾‚ç‚ê‚½result_img‚ğ”wŒi‚É‚µ‚Äü‚ğã‘‚«‚·‚é
-				doDot(depth.contourImage, result_img);
-				//‚±‚Ì‚Ìü‚ğarray‚É’Ç‰Á‚·‚é
-				addAfterImg(result_img, afterimg_array);
-			}
+			//	//ã‚Å“¾‚ç‚ê‚½result_img‚ğ”wŒi‚É‚µ‚Äü‚ğã‘‚«‚·‚é
+			//	doDot(depth.contourImage, result_img);
+			//	//‚±‚Ì‚Ìü‚ğarray‚É’Ç‰Á‚·‚é
+			//	addAfterImg(result_img, afterimg_array);
+			//}
+			doDot(depth.contourImage, result_img);
 
 			cv::imshow("Result", result_img);
 			auto key = cv::waitKey(20);
