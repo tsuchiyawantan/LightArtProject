@@ -68,12 +68,10 @@ void main() {
 			clock_t end = clock();
 			//cv::imshow("body index depth", depth.bodyDepthImage);
 			depth.setNormalizeDepth(depth.bodyDepthImage);
-			cv::imshow("normalize depth image", depth.normalizeDepthImage);
+			//cv::imshow("normalize depth image", depth.normalizeDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
 			//cv::imshow("contour image", depth.contourImage);
 			result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
-			depth.setRGB();
-			cv::imshow("rgb", depth.rgbImage);
 			
 			/*	残像ありversion */
 			//1回目はdotから始めて、2回目以降はeffectかけたresultがほしいので、effectから始める
