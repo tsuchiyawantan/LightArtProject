@@ -62,6 +62,7 @@ void main() {
 		cv::Mat result_img;
 		vector<cv::Mat> afterimg_array;
 		cv::Mat black_img;
+		int count = 0;
 		while (1) {
 			clock_t start = clock();
 			depth.setBodyDepth();
@@ -70,7 +71,8 @@ void main() {
 			depth.setNormalizeDepth(depth.bodyDepthImage);
 			//cv::imshow("normalize depth image", depth.normalizeDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
-			//cv::imshow("contour image", depth.contourImage);
+			//cv::imwrite("image/edge" + to_string(count++) + ".png", depth.contourImage);
+			cv::imshow("contour image", depth.contourImage);
 			result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 			
 			/*	Žc‘œ‚ ‚èversion */
