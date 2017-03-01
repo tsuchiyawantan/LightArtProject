@@ -17,6 +17,8 @@ public:
 	vector<pair<int, pair<int, int>>> priorityStart;
 	vector<vector<pair<int, int>>> contours;
 	vector<vector<pair<int, int>>> approximationLine;
+	vector<vector<cv::Point>> divideContours;
+
 	Dot(){
 		init();
 	}
@@ -27,6 +29,7 @@ public:
 		priorityStart.clear();
 		contours.clear();
 		approximationLine.clear();
+		divideContours.clear();
 	}
 	void scalable(int scaleSize){
 		for (int i = 0; i < approximationLine.size(); i++){
@@ -156,6 +159,18 @@ public:
 				ctr.clear();
 				dir.clear();
 			}
+		}
+	}
+	//“_‚ðspaceSize‚¾‚¯ŠÔˆø‚­
+	void divideCon(int spaceSize){
+		for (int i = 0; i < contours.size(); i++){
+			vector<cv::Point> ctr;
+
+			for (int j = 0; j < contours[i].size(); j = j + spaceSize){
+				ctr.push_back(cv::Point(contours[i].at(j).second, contours[i].at(j).first));
+			}
+			ctr.push_back(cv::Point(contours[i].back().second, contours[i].back().first));
+			divideContours.push_back(ctr);
 		}
 	}
 };
