@@ -9,48 +9,75 @@
 #include "CatmullSpline.h"
 #include "NtKinect.h"
 #include "Effect.h"
-#define HUE 40
+#include "Node.h"
+#include "Graph.h"
+
+#define HUE 80
 #define SPACESIZE 10
-#define SCALESIZE 1
-#define FILTERSIZE 81
-#define AFTER_FRAME 3
+#define EFFECT_FLAG 1
 
 Dot dot;
 CatmullSpline catmull;
+Graph graph;
 Effect effect;
+int test_count = 1;
 
-
-void doCatmull(cv::Mat &srcImg, cv::Mat &resultImg, vector<vector<pair<int, int>>> &approximationLine){
+void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 	catmull.init();
-	for (int i = 0; i < approximationLine.size(); i++){
-		catmull.drawLine(resultImg, approximationLine[i], HUE);
-	}
-	//cv::blur(resultImg, resultImg, cv::Size(9, 9));
-	catmull.drawInline(resultImg, HUE);
-}
-void doDot(cv::Mat &srcImg, cv::Mat &resultImg){
-	dot.init();
-	dot.setWhiteDots(srcImg);
-	dot.findStart(srcImg);
-	dot.makeLine(srcImg);
-	dot.makeSpace(SPACESIZE);
-	dot.scalable(SCALESIZE);
-	doCatmull(srcImg, resultImg, dot.approximationLine);
+	catmull.drawLine(result_img, node_array, HUE);
+	catmull.drawInline(result_img, HUE);
 }
 
-void addAfterImg(cv::Mat &src_img, vector<cv::Mat> &afterimg_array){
-	cv::Mat src_multi_img = src_img.clone();
+void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vector<Node *>> &node_array){
+	graph.toGraph(src_img, dot.divideContours, prenode_array);
+	graph.setCorner(src_img, prenode_array, node_array);
+	//graph.deformeNode(node_array);
+}
 
-	if (afterimg_array.size() != 0){
-		if(afterimg_array.size() > AFTER_FRAME) afterimg_array.erase(afterimg_array.begin());
-		//afterimg_array配列に1/Xを足し算していく
-		for (int i = 0; i < afterimg_array.size(); i++){
-			effect.applyFilteringAdd(afterimg_array.at(i), 1.0 / AFTER_FRAME);
-
+void doImwrite(vector<vector<Node *>> node_array, int rows, int cols){
+	cv::Mat image = cv::Mat(rows, cols, CV_8UC3, cv::Scalar(0, 0, 0));
+	for (int i = 0; i < node_array.size(); i++){
+		for (int j = 0; j < node_array[i].size(); j++){
+			Node *node = node_array[i].at(j);
+			int y = (*node).getNodeY();
+			int x = (*node).getNodeX();
+			circle(image, cv::Point(x, y), 5, cv::Scalar(0, 255, 0), -1, 8);
 		}
 	}
-	effect.applyFilteringMulti(src_img, src_multi_img, 1.0 / AFTER_FRAME);
-	afterimg_array.push_back(src_multi_img);
+	cv::imwrite("image/image" + to_string(test_count++) + ".png", image);
+}
+
+void doDot(cv::Mat &src_img, cv::Mat &result_img){
+	vector<vector<Node *>> prenode_array;
+	vector<vector<Node *>> node_array;
+	dot.init();
+	dot.setWhiteDots(src_img);
+	dot.findStart(src_img);
+	dot.makeLine(src_img);
+	dot.divideCon(SPACESIZE);
+	doGraph(src_img, prenode_array, node_array);
+	doImwrite(node_array, src_img.rows, src_img.cols);
+	doCatmull(result_img, node_array);
+}
+
+void doAfterImg(cv::Mat &result_img, cv::Mat depthcontour_img, vector<cv::Mat> &afterimg_array){
+	//1回目はdotから始めて、2回目以降はeffectかけたresultがほしいので、effectから始める
+	if (afterimg_array.size() == 0){
+		doDot(depthcontour_img, result_img);
+		//1枚目を明るさ下げてarrayに保存
+		effect.addAfterImg(result_img, afterimg_array);
+	}
+	else {
+		//arrayに入っている画像をor演算子でつなげて背景にする
+		for (int i = 0; i < afterimg_array.size(); i++){
+			bitwise_or(result_img, afterimg_array.at(i), result_img);
+		}
+
+		//上で得られたresult_imgを背景にして線を上書きする
+		doDot(depthcontour_img, result_img);
+		//この時の線をarrayに追加する
+		effect.addAfterImg(result_img, afterimg_array);
+	}
 }
 
 void main() {
@@ -61,47 +88,27 @@ void main() {
 		cv::Mat rgb_img;
 		cv::Mat result_img;
 		vector<cv::Mat> afterimg_array;
-		cv::Mat black_img;
 		int count = 0;
 		while (1) {
-			clock_t start = clock();
+
 			depth.setBodyDepth();
-			clock_t end = clock();
-			//cv::imshow("body index depth", depth.bodyDepthImage);
 			depth.setNormalizeDepth(depth.bodyDepthImage);
-			//cv::imshow("normalize depth image", depth.normalizeDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
-			//cv::imwrite("image/edge" + to_string(count++) + ".png", depth.contourImage);
-			cv::imshow("contour image", depth.contourImage);
 			result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
-			
-			/*	残像ありversion */
-			//1回目はdotから始めて、2回目以降はeffectかけたresultがほしいので、effectから始める
-			if (afterimg_array.size() == 0){
-				doDot(depth.contourImage, result_img);
-			//1枚目を明るさ下げてarrayに保存
-				addAfterImg(result_img, afterimg_array);
+			if (EFFECT_FLAG){
+				doAfterImg(result_img, depth.contourImage, afterimg_array);
 			}
-			else {
-				//arrayに入っている画像をor演算子でつなげて背景にする
-				for (int i = 0; i < afterimg_array.size(); i++){
-					bitwise_or(result_img, afterimg_array.at(i), result_img);
-				}				
-
-				//上で得られたresult_imgを背景にして線を上書きする
+			else
+				/* 残像なしversion */
 				doDot(depth.contourImage, result_img);
-				//この時の線をarrayに追加する
-				addAfterImg(result_img, afterimg_array);
+			//フレームレート落とせてる？
+			if (count % 2 == 0){
+				cv::imshow("Result", result_img);
 			}
-			/* 残像あり終わり */
-
-			/* 残像なしversion */
-			//doDot(depth.contourImage, result_img);
-			/* 残像なし終わり */
-
-			cv::imshow("Result", result_img);
+			count++;
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
+
 		}
 	}
 	catch (exception& ex) {

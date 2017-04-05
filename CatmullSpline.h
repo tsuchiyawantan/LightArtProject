@@ -6,6 +6,7 @@
 #include <Windows.h>
 #include <time.h>
 #include "NeonDesign.h"
+#include "Node.h"
 
 using namespace std;
 
@@ -135,6 +136,74 @@ public:
 				}
 			}
 
+		}
+		catmullLine.push_back(ctr);
+	}
+
+	void drawLine(cv::Mat &resultImg, vector<vector<Node *>> node_array, int hue){
+		NeonDesign design;
+		int b = 0, g = 0, r = 0;
+		vector<pair<int, int>> ctr;
+		cv::Point first;
+		cv::Point second;
+		cv::Point third;
+		cv::Point forth;
+
+		design.rgb(hue, 255, 255 - 100, b, g, r);
+
+		for (int i = 0; i < node_array.size(); i++){
+			for (int j = 0; j < node_array[i].size(); j++){
+				Node *node = node_array[i].at(j);
+				int y = (*node).getNodeY();
+				int x = (*node).getNodeX();
+				if (j >= node_array[i].size() || j + 1 >= node_array[i].size() || j + 2 >= node_array[i].size() || j + 3 >= node_array[i].size()) break;
+				if (j == 0){
+					Node *first_node = node_array[i].at(0);
+					Node *second_node = node_array[i].at(1);
+					first.y = (*first_node).getNodeY();
+					first.x = (*first_node).getNodeX();
+					second.y = (*second_node).getNodeY();
+					second.x = (*second_node).getNodeX();
+					for (double t = 0; t <= 1.0; t += 0.005){
+						y = catmullRomFirstLast(first.y, second.y, t);
+						x = catmullRomFirstLast(first.x, second.x, t);
+						ctr.push_back(make_pair(y, x));
+						circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
+					}
+				}
+				Node *first_node = node_array[i].at(j);
+				Node *second_node = node_array[i].at(j + 1);
+				Node *third_node = node_array[i].at(j + 2);
+				Node *forth_node = node_array[i].at(j + 3);
+				first.y = (*first_node).getNodeY();
+				first.x = (*first_node).getNodeX();
+				second.y = (*second_node).getNodeY();
+				second.x = (*second_node).getNodeX();
+				third.y = (*third_node).getNodeY();
+				third.x = (*third_node).getNodeX();
+				forth.y = (*forth_node).getNodeY();
+				forth.x = (*forth_node).getNodeX();
+				for (double t = 0; t <= 1.0; t += 0.05){
+					y = catmullRom(first.y, second.y, third.y, forth.y, t);
+					x = catmullRom(first.x, second.x, third.x, forth.x, t);
+					ctr.push_back(make_pair(y, x));
+					circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
+				}
+				if (i == node_array[i].size() - 4){
+					Node *third_node = node_array[i].at(node_array[i].size() - 2);
+					Node *forth_node = node_array[i].at(node_array[i].size() - 1);
+					third.y = (*third_node).getNodeY();
+					third.x = (*third_node).getNodeX();
+					forth.y = (*forth_node).getNodeY();
+					forth.x = (*forth_node).getNodeX();
+					for (double t = 0; t <= 1.0; t += 0.005){
+						y = catmullRomFirstLast(third.y, forth.y, t);
+						x = catmullRomFirstLast(third.x, forth.x, t);
+						ctr.push_back(make_pair(y, x));
+						circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
+					}
+				}
+			}
 		}
 		catmullLine.push_back(ctr);
 	}
