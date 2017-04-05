@@ -20,6 +20,7 @@ Dot dot;
 CatmullSpline catmull;
 Graph graph;
 Effect effect;
+int test_count = 1;
 
 void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 	catmull.init();
@@ -33,6 +34,19 @@ void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vec
 	//graph.deformeNode(node_array);
 }
 
+void doImwrite(vector<vector<Node *>> node_array, int rows, int cols){
+	cv::Mat image = cv::Mat(rows, cols, CV_8UC3, cv::Scalar(0, 0, 0));
+	for (int i = 0; i < node_array.size(); i++){
+		for (int j = 0; j < node_array[i].size(); j++){
+			Node *node = node_array[i].at(j);
+			int y = (*node).getNodeY();
+			int x = (*node).getNodeX();
+			circle(image, cv::Point(x, y), 5, cv::Scalar(0, 255, 0), -1, 8);
+		}
+	}
+	cv::imwrite("image/image" + to_string(test_count++) + ".png", image);
+}
+
 void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	vector<vector<Node *>> prenode_array;
 	vector<vector<Node *>> node_array;
@@ -42,6 +56,7 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
 	doGraph(src_img, prenode_array, node_array);
+	doImwrite(node_array, src_img.rows, src_img.cols);
 	doCatmull(result_img, node_array);
 }
 
