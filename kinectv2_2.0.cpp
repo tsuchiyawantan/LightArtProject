@@ -47,6 +47,22 @@ void doImwrite(vector<vector<Node *>> node_array, int rows, int cols){
 	cv::imwrite("image/image" + to_string(test_count++) + ".png", image);
 }
 
+void removeNodes(vector<vector<Node *>> &pre_node, vector<vector<Node *>> &node){
+	for (vector<vector<Node *>>::iterator it = pre_node.begin(); it != pre_node.end(); it++){
+		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
+			delete (*itra);
+			(*itra) = NULL;
+		}
+	}
+	//pre_nodeの参照先をnodeも見ているので、解放済み。
+	//実体があるように見えるのでNULLを入れておく
+	for (vector<vector<Node *>>::iterator it = node.begin(); it != node.end(); it++){
+		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
+			(*itra) = NULL;
+		}
+	}
+}
+
 void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	vector<vector<Node *>> prenode_array;
 	vector<vector<Node *>> node_array;
@@ -56,8 +72,12 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
 	doGraph(src_img, prenode_array, node_array);
-	doImwrite(node_array, src_img.rows, src_img.cols);
+
 	doCatmull(result_img, node_array);
+	
+	//メモリ解放
+	if (prenode_array.size() > 0) removeNodes(prenode_array, node_array);
+
 }
 
 void doAfterImg(cv::Mat &result_img, cv::Mat depthcontour_img, vector<cv::Mat> &afterimg_array){
@@ -95,6 +115,7 @@ void main() {
 			depth.setNormalizeDepth(depth.bodyDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
 			result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
+			/* EFFECT_FLAG=1ならば、残像ありversion */
 			if (EFFECT_FLAG){
 				doAfterImg(result_img, depth.contourImage, afterimg_array);
 			}
