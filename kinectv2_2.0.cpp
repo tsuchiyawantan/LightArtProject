@@ -20,7 +20,9 @@ Dot dot;
 CatmullSpline catmull;
 Graph graph;
 Effect effect;
+vector<vector<Node *>> former_node_array;
 int test_count = 1;
+
 
 void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 	catmull.init();
@@ -29,7 +31,7 @@ void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 }
 
 void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vector<Node *>> &node_array){
-	graph.toGraph(src_img, dot.divideContours, prenode_array);
+	graph.toGraph(src_img, dot.divide_contours, prenode_array);
 	graph.setCorner(src_img, prenode_array, node_array);
 	//graph.deformeNode(node_array);
 }
@@ -54,13 +56,11 @@ void removeNodes(vector<vector<Node *>> &pre_node, vector<vector<Node *>> &node)
 			(*itra) = NULL;
 		}
 	}
-	//pre_nodeの参照先をnodeも見ているので、解放済み。
-	//実体があるように見えるのでNULLを入れておく
-	for (vector<vector<Node *>>::iterator it = node.begin(); it != node.end(); it++){
-		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
-			(*itra) = NULL;
-		}
-	}
+	pre_node.clear();
+	node.clear();
+
+	pre_node.shrink_to_fit();
+	node.shrink_to_fit();
 }
 
 void doDot(cv::Mat &src_img, cv::Mat &result_img){
@@ -72,8 +72,13 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
 	doGraph(src_img, prenode_array, node_array);
-
 	doCatmull(result_img, node_array);
+	
+	if (former_node_array.size()) {
+		former_node_array.clear();
+		former_node_array.shrink_to_fit();
+	}
+	copy(node_array.begin(), node_array.end(), back_inserter(former_node_array));
 	
 	//メモリ解放
 	if (prenode_array.size() > 0) removeNodes(prenode_array, node_array);
@@ -110,7 +115,6 @@ void main() {
 		vector<cv::Mat> afterimg_array;
 		int count = 0;
 		while (1) {
-
 			depth.setBodyDepth();
 			depth.setNormalizeDepth(depth.bodyDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
@@ -122,7 +126,8 @@ void main() {
 			else
 				/* 残像なしversion */
 				doDot(depth.contourImage, result_img);
-			//フレームレート落とせてる？
+			
+			//フレームレート落として表示
 			if (count % 2 == 0){
 				cv::imshow("Result", result_img);
 			}

@@ -12,31 +12,38 @@ using namespace std;
 class Dot{
 private:
 public:
-	set<pair<int, int>> usedDots;
-	set<pair<int, int>> whiteDots;
-	vector<pair<int, pair<int, int>>> priorityStart;
+	set<pair<int, int>> used_dots;
+	set<pair<int, int>> white_dots;
+	vector<pair<int, pair<int, int>>> priority_start;
 	vector<vector<pair<int, int>>> contours;
-	vector<vector<pair<int, int>>> approximationLine;
-	vector<vector<cv::Point>> divideContours;
+	vector<vector<pair<int, int>>> approximation_line;
+	vector<vector<cv::Point>> divide_contours;
 
 	Dot(){
 		init();
 	}
 	~Dot(){}
+
 	void init(){
-		usedDots.clear();
-		whiteDots.clear();
-		priorityStart.clear();
+		used_dots.clear();
+		white_dots.clear();
+		priority_start.clear();
 		contours.clear();
-		approximationLine.clear();
-		divideContours.clear();
+		approximation_line.clear();
+		divide_contours.clear();
+		
+		priority_start.shrink_to_fit();
+		contours.shrink_to_fit();
+		approximation_line.shrink_to_fit();
+		divide_contours.shrink_to_fit();
 	}
+
 	void scalable(int scaleSize){
-		for (int i = 0; i < approximationLine.size(); i++){
-			for (int j = 0; j < approximationLine[i].size(); j++){
-				int y = (approximationLine[i].at(j).first)*scaleSize;
-				int x = (approximationLine[i].at(j).second)*scaleSize;
-				approximationLine[i].at(j) = make_pair(y, x);
+		for (int i = 0; i < approximation_line.size(); i++){
+			for (int j = 0; j < approximation_line[i].size(); j++){
+				int y = (approximation_line[i].at(j).first)*scaleSize;
+				int x = (approximation_line[i].at(j).second)*scaleSize;
+				approximation_line[i].at(j) = make_pair(y, x);
 			}
 		}
 	}
@@ -50,7 +57,7 @@ public:
 				ctr.push_back(make_pair(contours[i].at(j).first, contours[i].at(j).second));
 			}
 			if (j > contours[i].size()) ctr.push_back(make_pair(contours[i].back().first, contours[i].back().second));
-			approximationLine.push_back(ctr);
+			approximation_line.push_back(ctr);
 		}
 	}
 
@@ -59,7 +66,7 @@ public:
 			unsigned char *p = &srcImg.at<uchar>(y, 0);
 			for (int x = 0; x < srcImg.cols; x++){
 				if (*p == 255){
-					whiteDots.insert(make_pair(y, x));
+					white_dots.insert(make_pair(y, x));
 				}
 				p++;
 			}
@@ -77,12 +84,12 @@ public:
 		return count;
 	}
 	void findStart(cv::Mat &srcImg){
-		for (auto itr = whiteDots.begin(); itr != whiteDots.end(); ++itr) {
+		for (auto itr = white_dots.begin(); itr != white_dots.end(); ++itr) {
 			int y = (*itr).first;
 			int x = (*itr).second;
-			priorityStart.push_back(make_pair(countW8(srcImg, y, x), make_pair(y, x)));
+			priority_start.push_back(make_pair(countW8(srcImg, y, x), make_pair(y, x)));
 		}
-		sort(priorityStart.begin(), priorityStart.end());
+		sort(priority_start.begin(), priority_start.end());
 	}
 	bool isExistS(int y, int x, set<pair<int, int>> &s){
 		if (s.find(make_pair(y, x)) == s.end()) return 0;
@@ -105,9 +112,9 @@ public:
 			int dy = y + n.at(d).first;
 			int dx = x + n.at(d).second;
 			if (dy < 0 || dy >= srcImg.rows || dx < 0 || dx >= srcImg.cols);
-			else if (srcImg.at<uchar>(dy, dx) == 255 && !isExistS(dy, dx, usedDots)) {
+			else if (srcImg.at<uchar>(dy, dx) == 255 && !isExistS(dy, dx, used_dots)) {
 				ctr.push_back(make_pair(dy, dx));
-				usedDots.insert(make_pair(dy, dx));
+				used_dots.insert(make_pair(dy, dx));
 				dir.push_back(d);
 				return 1;
 			}
@@ -127,7 +134,7 @@ public:
 			int dy = y + n.at(d).first;
 			int dx = x + n.at(d).second;
 			if (dy < 0 || dy >= srcImg.rows || dx < 0 || dx >= srcImg.cols);
-			else if (srcImg.at<uchar>(dy, dx) == 255 && isExistS(dy, dx, usedDots) && !isExistV(dy, dx, ctr)){
+			else if (srcImg.at<uchar>(dy, dx) == 255 && isExistS(dy, dx, used_dots) && !isExistV(dy, dx, ctr)){
 				ctr.push_back(make_pair(dy, dx));
 				break;
 			}
@@ -137,14 +144,14 @@ public:
 	void makeLine(cv::Mat &srcImg){
 		vector<pair<int, int>> ctr;//一つの点列の入れ物
 		vector<int> dir;
-		for (auto itr = priorityStart.begin(); itr != priorityStart.end(); ++itr){
+		for (auto itr = priority_start.begin(); itr != priority_start.end(); ++itr){
 			//startがすでに使った点でなければ
-			if (!isExistS((*itr).second.first, (*itr).second.second, usedDots)){
+			if (!isExistS((*itr).second.first, (*itr).second.second, used_dots)){
 				int y = (*itr).second.first;
 				int x = (*itr).second.second;
 				//端点であろうx, y
 				ctr.push_back(make_pair(y, x));
-				usedDots.insert(make_pair(y, x));
+				used_dots.insert(make_pair(y, x));
 				dir.push_back(0);
 				//ここで8近傍見る、他の点列の点がいれば、それをctrのスタートの前に入れる
 				checkUsed8(srcImg, ctr, dir, y, x);
@@ -170,7 +177,7 @@ public:
 				ctr.push_back(cv::Point(contours[i].at(j).second, contours[i].at(j).first));
 			}
 			ctr.push_back(cv::Point(contours[i].back().second, contours[i].back().first));
-			divideContours.push_back(ctr);
+			divide_contours.push_back(ctr);
 		}
 	}
 };
