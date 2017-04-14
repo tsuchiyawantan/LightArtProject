@@ -29,9 +29,9 @@ void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 	catmull.drawInline(result_img, HUE);
 }
 
-void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array){
-	graph.toGraph(src_img, dot.divide_contours, node_array);
-	graph.setCorner(src_img, node_array);
+void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vector<Node *>> &node_array){
+	graph.toGraph(src_img, dot.divide_contours, prenode_array);
+	graph.setCorner(src_img, prenode_array, node_array);
 	//graph.deformeNode(src_img, node_array, former_node_array);
 }
 
@@ -80,7 +80,7 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	dot.findStart(src_img);
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
-	doGraph(src_img, node_array);
+	doGraph(src_img, node_array, prenode_array);
 	doCatmull(result_img, node_array);
 	
 	//if (former_node_array.size()) removeNodes(former_node_array);

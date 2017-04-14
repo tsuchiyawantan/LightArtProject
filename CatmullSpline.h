@@ -189,7 +189,7 @@ public:
 					ctr.push_back(make_pair(y, x));
 					circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
 				}
-				if (i == node_array[i].size() - 4){
+				if (j == node_array[i].size() - 4){
 					Node *third_node = node_array[i].at(node_array[i].size() - 2);
 					Node *forth_node = node_array[i].at(node_array[i].size() - 1);
 					third.y = (*third_node).getNodeY();

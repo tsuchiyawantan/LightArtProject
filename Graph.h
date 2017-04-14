@@ -89,7 +89,8 @@ public:
 	}
 
 	//点列の角であろう点だけをset
-	void setCorner(cv::Mat& src_img, vector<vector<Node *>> &node_array){
+	void setCorner(cv::Mat& src_img, vector<vector<Node *>> &node_array, vector<vector<Node *>> &newnode_array){
+		vector<Node *> node_array_child;
 		cv::Point start;
 		cv::Point goal;
 		cv::Point mid;
@@ -101,6 +102,7 @@ public:
 		int j = 0;
 
 		for (int i = 0; i < node_array.size(); i++){
+			node_array_child.clear();
 			di = 1;
 			//2個先の点と直線を引く
 			//直線の中点の8近傍に1個先の点がいなければ、1個先の点は角の可能性あり
@@ -124,14 +126,16 @@ public:
 				//詰まった線ではなく、シュッとした線になる
 				if (di % 3 == 0){
 					di = 1;
-					//startnodeの前のノードと次のノードのエッジを、互いを見るよう調整する
-					//startnodeに-1を入れることで、削除したと定義する
-					start_node->getEdge(1)->setNode2(forward_node);
-					forward_node->setEdge(start_node->getEdge(0), 1);
-					start_node->setNode(cv::Point(-1, -1));
+					node_array_child.pop_back();
 				}
+				node_array_child.push_back(start_node);
 				di++;
 			}
+			while (j < node_array[i].size()){
+				node_array_child.push_back(node_array[i].at(j));
+				j++;
+			}
+			newnode_array.push_back(node_array_child);
 		}
 	}
 
