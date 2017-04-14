@@ -16,12 +16,12 @@ public:
 		node1 = mynode;
 	}
 
-	void setNode(Node *node){
+	void setNode2(Node *node){
 		node2 = node;
 	}
 
 	//ƒ|ƒCƒ“ƒ^•Ô‚µ
-	Node *getNode(){
+	Node *getNode2(){
 		return node2;
 	}
 };

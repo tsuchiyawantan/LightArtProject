@@ -3,10 +3,9 @@
 #include <time.h>
 #include "Node.h"
 #include "Edge.h"
+#include "Voronoi.h"
 
 using namespace std;
-
-
 
 class Graph{
 private:
@@ -27,7 +26,6 @@ public:
 				continue;
 			}
 
-			//ノードの生成
 			//エッジを一個持ってる状態
 			for (int j = 0; j < divcon[i].size(); j++){
 				node = divcon[i].at(j);
@@ -46,7 +44,7 @@ public:
 				if (l == 0){ //始点
 					this_node = node_array_child.at(l);
 					next_node = node_array_child.at(l + 1);
-					(*this_node).addEdge(next_node, 0);
+					(*this_node).addEdgeNode2(next_node, 0);
 				}
 				else if (l == node_array_child.size() - 1){ //終点
 					this_node = node_array_child.at(l);
@@ -54,18 +52,18 @@ public:
 					int edgearray_num = (*prev_node).hasEdge(this_node);
 					if (edgearray_num >= 0){
 						Edge *edge = (*prev_node).getEdge(edgearray_num);
-						(*this_node).setEdge(edge);
+						(*this_node).addEdge(edge);
 					}
 				}
 				else {
 					this_node = node_array_child.at(l);
 					prev_node = node_array_child.at(l - 1);
 					next_node = node_array_child.at(l + 1);
-					(*this_node).addEdge(next_node, 0);
+					(*this_node).addEdgeNode2(next_node, 0);
 					int edgearray_num = (*prev_node).hasEdge(this_node);
 					if (edgearray_num >= 0){
 						Edge *edge = (*prev_node).getEdge(edgearray_num);
-						(*this_node).setEdge(edge);
+						(*this_node).addEdge(edge);
 					}
 				}
 			}
@@ -91,24 +89,18 @@ public:
 	}
 
 	//点列の角であろう点だけをset
-	void setCorner(cv::Mat& src_img, vector<vector<Node *>> &node_array, vector<vector<Node *>> &newnode_array){
+	void setCorner(cv::Mat& src_img, vector<vector<Node *>> &node_array){
 		cv::Point start;
 		cv::Point goal;
 		cv::Point mid;
 		cv::Point forward;
-		vector<cv::Point2f> corner;
-		vector<Node *> node_array_child;
 		Node *start_node;
 		Node *goal_node;
 		Node *forward_node;
-		int di = 0;
+		int di;
 		int j = 0;
 
 		for (int i = 0; i < node_array.size(); i++){
-			corner.clear();
-			node_array_child.clear();
-			//スタートの点
-			//corner.push_back(cv::Point2f(divideContours[i].at(0).x, divideContours[i].at(0).y));
 			di = 1;
 			//2個先の点と直線を引く
 			//直線の中点の8近傍に1個先の点がいなければ、1個先の点は角の可能性あり
@@ -126,34 +118,41 @@ public:
 				mid.x = (start.x + goal.x) / 2;
 
 				if (!dotExist(src_img, mid, forward)){
-					corner.push_back(cv::Point2f(forward.x, forward.y));
 					di = 1;
 				}
 				//角じゃない点が3回続いたら、1点間引く
 				//詰まった線ではなく、シュッとした線になる
 				if (di % 3 == 0){
-					di = 0;
-					node_array_child.pop_back();
+					di = 1;
+					//startnodeの前のノードと次のノードのエッジを、互いを見るよう調整する
+					//startnodeに-1を入れることで、削除したと定義する
+					start_node->getEdge(1)->setNode2(forward_node);
+					forward_node->setEdge(start_node->getEdge(0), 1);
+					start_node->setNode(cv::Point(-1, -1));
 				}
-				node_array_child.push_back(start_node);
 				di++;
 			}
-			//残った2ノード
-			while (j < node_array[i].size()){
-				node_array_child.push_back(node_array[i].at(j));
-				j++;
-			}
-			newnode_array.push_back(node_array_child);
 		}
 	}
 
-	void deformeNode(vector<vector<Node *>> &node_array){
-		for (int i = 0; i < node_array.size(); i++){
-			for (int j = 0; j < node_array[i].size(); j++){
-				Node *node = node_array[i].at(j);
-				(*node).circleNode();
+	void deformeNode(cv::Mat src_img, vector<vector<Node *>> &node_array, vector<vector<Node *>> &former_node){
+		if (former_node.size() == 0){
+			for (int i = 0; i < node_array.size(); i++){
+				for (int j = 0; j < node_array[i].size(); j++){
+					Node *node = node_array[i].at(j);
+					(*node).circleNode((*node).getNodeX(), (*node).getNodeY());
+				}
 			}
 		}
-	}
+		else {
+			for (int i = 0; i < node_array.size(); i++){
+				for (int j = 0; j < node_array[i].size(); j++){
+					Voronoi vor;
+					vor.mkVoronoiDelaunay(src_img, former_node, node_array[i]);
+				//	vor.deforme(src_img, node_array[i], vor.subdiv);
 
+				}
+			}		
+		}
+	}
 };

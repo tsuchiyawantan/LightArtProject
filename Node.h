@@ -10,6 +10,7 @@ using namespace std;
 class Node{
 private:
 	cv::Point node;
+	//0番目は右隣のエッジ、1番目は左隣へのエッジ
 	vector<Edge *> edge_array;
 public:
 
@@ -20,13 +21,20 @@ public:
 	}
 	~Node(){}
 
-	//エッジのnode2を埋める
-	void addEdge(Node *node, int i){
-		(*edge_array.at(i)).setNode(node);
+
+	//i番目のエッジのnode2を埋める
+	void addEdgeNode2(Node *node2, int i){
+		(*edge_array.at(i)).setNode2(node2);
 	}
 
-	void setEdge(Edge *edge){
+	//新たなエッジを追加
+	void addEdge(Edge *edge){
 		edge_array.push_back(edge);
+	}
+
+	//新たなエッジを追加
+	void setEdge(Edge *edge, int num){
+		edge_array.at(num) = edge;
 	}
 
 	Edge *getEdge(int n){
@@ -41,20 +49,33 @@ public:
 		return node.x;
 	}
 
+	void setNodeY(int mynode){
+		node.y = mynode;
+	}
+	
+	void setNodeX(int mynode){
+		node.x = mynode;
+	}
+
+	void setNode(cv::Point mynodes){
+		setNodeY(mynodes.y);
+		setNodeX(mynodes.x);
+	}
+
 	void getMyNode(cv::Point &mynode){
 		mynode.y = node.y;
 		mynode.x = node.x;
 	}
 	
-	int getMyEdgeNum(){
+	int getEdgeNum(){
 		return edge_array.size();
 	}
 
-	int hasEdge(Node *node){
+	int hasEdge(Node *node2){
 		Edge *edge;
 		for (int i = 0; i < edge_array.size(); i++){
 			edge = edge_array.at(i);
-			if ((*edge).getNode() == node) return i;
+			if ((*edge).getNode2() == node2) return i;
 		}
 		return -1;
 	}
@@ -64,8 +85,8 @@ public:
 		return min + (int)(rand()*(max - min + 1.0) / (1.0 + RAND_MAX));
 	}
 
-	void circleNode(){
-		node.x = node.x + getRandom(-R, R);
-		node.y = node.y + getRandom(-R, R);
+	void circleNode(int x, int y){
+		node.x = x + getRandom(-R, R);
+		node.y = y + getRandom(-R, R);
 	}
 };

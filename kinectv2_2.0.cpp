@@ -23,17 +23,16 @@ Effect effect;
 vector<vector<Node *>> former_node_array;
 int test_count = 1;
 
-
 void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 	catmull.init();
 	catmull.drawLine(result_img, node_array, HUE);
 	catmull.drawInline(result_img, HUE);
 }
 
-void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vector<Node *>> &node_array){
-	graph.toGraph(src_img, dot.divide_contours, prenode_array);
-	graph.setCorner(src_img, prenode_array, node_array);
-	//graph.deformeNode(node_array);
+void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array){
+	graph.toGraph(src_img, dot.divide_contours, node_array);
+	graph.setCorner(src_img, node_array);
+	//graph.deformeNode(src_img, node_array, former_node_array);
 }
 
 void doImwrite(vector<vector<Node *>> node_array, int rows, int cols){
@@ -49,40 +48,51 @@ void doImwrite(vector<vector<Node *>> node_array, int rows, int cols){
 	cv::imwrite("image/image" + to_string(test_count++) + ".png", image);
 }
 
-void removeNodes(vector<vector<Node *>> &pre_node, vector<vector<Node *>> &node){
-	for (vector<vector<Node *>>::iterator it = pre_node.begin(); it != pre_node.end(); it++){
+void removeNodes(vector<vector<Node *>> &arr){
+	for (vector<vector<Node *>>::iterator it = arr.begin(); it != arr.end(); it++){
 		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
+			//if ((*itra) == NULL) break;
 			delete (*itra);
-			(*itra) = NULL;
 		}
 	}
-	pre_node.clear();
-	node.clear();
+}
 
-	pre_node.shrink_to_fit();
-	node.shrink_to_fit();
+void copyNodes(vector<vector<Node *>> node_array, vector<vector<Node *>> &former_array){
+	for (int i = 0; i < node_array.size(); i++){
+		vector<Node *> node_array_child;
+		for (int j = 0; j < node_array[i].size(); j++){
+			Node *node = node_array[i].at(j);
+			int y = (*node).getNodeY();
+			int x = (*node).getNodeX();
+
+			node_array_child.push_back(new Node(cv::Point(x, y), (*node).getEdgeNum()));
+		}
+		former_array.push_back(node_array_child);
+	}
 }
 
 void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	vector<vector<Node *>> prenode_array;
 	vector<vector<Node *>> node_array;
+
 	dot.init();
 	dot.setWhiteDots(src_img);
 	dot.findStart(src_img);
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
-	doGraph(src_img, prenode_array, node_array);
+	doGraph(src_img, node_array);
 	doCatmull(result_img, node_array);
 	
-	if (former_node_array.size()) {
-		former_node_array.clear();
-		former_node_array.shrink_to_fit();
-	}
-	copy(node_array.begin(), node_array.end(), back_inserter(former_node_array));
-	
-	//ƒƒ‚ƒŠ‰ð•ú
-	if (prenode_array.size() > 0) removeNodes(prenode_array, node_array);
-
+	//if (former_node_array.size()) removeNodes(former_node_array);
+	////ƒƒ‚ƒŠ‰ð•ú
+	//if (prenode_array.size() > 0) {
+	//	copyNodes(node_array, former_node_array);
+	//	removeNodes(prenode_array);	
+	//	prenode_array.clear();
+	//	node_array.clear();
+	//	node_array.shrink_to_fit();
+	//	prenode_array.shrink_to_fit();
+	//}
 }
 
 void doAfterImg(cv::Mat &result_img, cv::Mat depthcontour_img, vector<cv::Mat> &afterimg_array){
