@@ -12,15 +12,30 @@ private:
 	cv::Point node;
 	//0番目は右隣のエッジ、1番目は左隣へのエッジ
 	vector<Edge *> edge_array;
+	bool has_right_edge = false;
 public:
 
 	Node(cv::Point mynode, int has_edge){
 	//	srand((unsigned int)time(NULL));
 		node = mynode;
-		if (has_edge) edge_array.push_back(new Edge(this));
+		if (has_edge) {
+			has_right_edge = true;
+			edge_array.push_back(new Edge(this));
+		}
 	}
 	~Node(){}
 
+	//コピーコンストラクタ
+	Node(const Node& copy_node){
+		//edgearrayにedgeを生成して、edgeをつっこむ
+		//eddgeのコピーコンストラクタが必要
+		copy_node.getMyNode(node);
+		if (copy_node.hasRightEdge()) {
+			has_right_edge = true;
+			Edge *o_edge = new Edge(copy_node);
+			edge_array.push_back(o_edge);
+		}
+	}
 
 	//i番目のエッジのnode2を埋める
 	void addEdgeNode2(Node *node2, int i){
@@ -62,7 +77,7 @@ public:
 		setNodeX(mynodes.x);
 	}
 
-	void getMyNode(cv::Point &mynode){
+	void getMyNode(cv::Point &mynode) const{
 		mynode.y = node.y;
 		mynode.x = node.x;
 	}
@@ -88,5 +103,9 @@ public:
 	void circleNode(int x, int y){
 		node.x = x + getRandom(-R, R);
 		node.y = y + getRandom(-R, R);
+	}
+
+	bool hasRightEdge() const{
+		return has_right_edge;
 	}
 };

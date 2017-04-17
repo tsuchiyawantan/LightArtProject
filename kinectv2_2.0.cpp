@@ -61,11 +61,10 @@ void copyNodes(vector<vector<Node *>> node_array, vector<vector<Node *>> &former
 	for (int i = 0; i < node_array.size(); i++){
 		vector<Node *> node_array_child;
 		for (int j = 0; j < node_array[i].size(); j++){
-			Node *node = node_array[i].at(j);
-			int y = (*node).getNodeY();
-			int x = (*node).getNodeX();
+			Node node = (*node_array[i].at(j));
+			Node former_node(node); //nodeのコピーコンストラクタが呼ばれる
 
-			node_array_child.push_back(new Node(cv::Point(x, y), (*node).getEdgeNum()));
+			node_array_child.push_back(&former_node);
 		}
 		former_array.push_back(node_array_child);
 	}
@@ -84,15 +83,15 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	doCatmull(result_img, node_array);
 	
 	//if (former_node_array.size()) removeNodes(former_node_array);
-	////メモリ解放
-	//if (prenode_array.size() > 0) {
-	//	copyNodes(node_array, former_node_array);
+	//メモリ解放
+	if (prenode_array.size() > 0) {
+		copyNodes(node_array, former_node_array);
 	//	removeNodes(prenode_array);	
 	//	prenode_array.clear();
 	//	node_array.clear();
 	//	node_array.shrink_to_fit();
 	//	prenode_array.shrink_to_fit();
-	//}
+	}
 }
 
 void doAfterImg(cv::Mat &result_img, cv::Mat depthcontour_img, vector<cv::Mat> &afterimg_array){
