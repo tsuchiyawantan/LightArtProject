@@ -23,7 +23,9 @@ public:
 			edge_array.push_back(new Edge(this));
 		}
 	}
+	Node(){}
 	~Node(){}
+
 
 	//コピーコンストラクタ
 	Node(const Node& copy_node){
@@ -32,9 +34,27 @@ public:
 		copy_node.getMyNode(node);
 		if (copy_node.hasRightEdge()) {
 			has_right_edge = true;
+			edge_array.push_back(new Edge(this));
+		}
+	}
+
+	//代入演算子
+	Node& operator=(const Node& copy_node){
+		if (this == &copy_node) return *this;   //自己代入
+		if (edge_array.size()){
+			for (int i = 0; i < edge_array.size(); i++){
+				delete edge_array.at(i);
+			}
+			edge_array.clear();
+			edge_array.shrink_to_fit();
+		}
+		copy_node.getMyNode(node);
+		if (copy_node.hasRightEdge()) {
+			has_right_edge = true;
 			Edge *o_edge = new Edge(copy_node);
 			edge_array.push_back(o_edge);
 		}
+		return *this;
 	}
 
 	//i番目のエッジのnode2を埋める
@@ -52,7 +72,7 @@ public:
 		edge_array.at(num) = edge;
 	}
 
-	Edge *getEdge(int n){
+	Edge *getEdge(int n) const{
 		return edge_array.at(n);
 	}
 
@@ -82,7 +102,7 @@ public:
 		mynode.x = node.x;
 	}
 	
-	int getEdgeNum(){
+	int getEdgeNum() const{
 		return edge_array.size();
 	}
 

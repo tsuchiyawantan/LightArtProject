@@ -20,11 +20,6 @@ public:
 		node1 = &mynode;
 	}
 
-	//コピーコンストラクタ
-	Edge(const Edge& edge){
-		//*nodeを入れる
-	}
-
 	void setNode1(Node *node){
 		node1 = node;
 	}

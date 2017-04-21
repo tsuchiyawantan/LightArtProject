@@ -32,7 +32,7 @@ void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vector<Node *>> &node_array){
 	graph.toGraph(src_img, dot.divide_contours, prenode_array);
 	graph.setCorner(src_img, prenode_array, node_array);
-	//graph.deformeNode(src_img, node_array, former_node_array);
+	graph.deformeNode(src_img, node_array, ::former_node_array);
 }
 
 void doImwrite(vector<vector<Node *>> node_array, int rows, int cols){
@@ -57,16 +57,58 @@ void removeNodes(vector<vector<Node *>> &arr){
 	}
 }
 
-void copyNodes(vector<vector<Node *>> node_array, vector<vector<Node *>> &former_array){
+void removeFormerNodes(){
+	for (vector<vector<Node *>>::iterator it = ::former_node_array.begin(); it != ::former_node_array.end(); it++){
+		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
+			//if ((*itra) == NULL) break;
+			delete (*itra);
+		}
+	}
+	::former_node_array.clear();
+	::former_node_array.shrink_to_fit();
+}
+
+void copyNodes(vector<vector<Node *>> node_array){
 	for (int i = 0; i < node_array.size(); i++){
 		vector<Node *> node_array_child;
 		for (int j = 0; j < node_array[i].size(); j++){
 			Node node = (*node_array[i].at(j));
-			Node former_node(node); //nodeのコピーコンストラクタが呼ばれる
-
-			node_array_child.push_back(&former_node);
+			node_array_child.push_back(new Node(node));
 		}
-		former_array.push_back(node_array_child);
+
+		//ノードの連結操作
+		Node *this_node;
+		Node *prev_node;
+		Node *next_node;
+
+		for (int l = 0; l < node_array_child.size(); l++){
+			if (l == 0){ //始点
+				this_node = node_array_child.at(l);
+				next_node = node_array_child.at(l + 1);
+				(*this_node).addEdgeNode2(next_node, 0);
+			}
+			else if (l == node_array_child.size() - 1){ //終点
+				this_node = node_array_child.at(l);
+				prev_node = node_array_child.at(l - 1);
+				int edgearray_num = (*prev_node).hasEdge(this_node);
+				if (edgearray_num >= 0){
+					Edge *edge = (*prev_node).getEdge(edgearray_num);
+					(*this_node).addEdge(edge);
+				}
+			}
+			else {
+				this_node = node_array_child.at(l);
+				prev_node = node_array_child.at(l - 1);
+				next_node = node_array_child.at(l + 1);
+				(*this_node).addEdgeNode2(next_node, 0);
+				int edgearray_num = (*prev_node).hasEdge(this_node);
+				if (edgearray_num >= 0){
+					Edge *edge = (*prev_node).getEdge(edgearray_num);
+					(*this_node).addEdge(edge);
+				}
+			}
+		}
+		::former_node_array.push_back(node_array_child);
 	}
 }
 
@@ -81,16 +123,19 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	dot.divideCon(SPACESIZE);
 	doGraph(src_img, node_array, prenode_array);
 	doCatmull(result_img, node_array);
-	
-	//if (former_node_array.size()) removeNodes(former_node_array);
+
+	if (former_node_array.size()) {
+		removeFormerNodes();
+	}
+
 	//メモリ解放
 	if (prenode_array.size() > 0) {
-		copyNodes(node_array, former_node_array);
-	//	removeNodes(prenode_array);	
-	//	prenode_array.clear();
-	//	node_array.clear();
-	//	node_array.shrink_to_fit();
-	//	prenode_array.shrink_to_fit();
+		copyNodes(node_array);
+		removeNodes(prenode_array);
+		prenode_array.clear();
+		node_array.clear();
+		node_array.shrink_to_fit();
+		prenode_array.shrink_to_fit();
 	}
 }
 
@@ -135,7 +180,7 @@ void main() {
 			else
 				/* 残像なしversion */
 				doDot(depth.contourImage, result_img);
-			
+
 			//フレームレート落として表示
 			if (count % 2 == 0){
 				cv::imshow("Result", result_img);

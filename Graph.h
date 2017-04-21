@@ -20,20 +20,25 @@ public:
 			cv::Point node;
 
 			//エッジがない場合＝ノードが右隣にいない
-			if (divcon[i].size() == 1) {
+		/*	if (divcon[i].size() == 1) {
 				node = divcon[i].at(0);
 				node_array_child.push_back(new Node(node, 0));
 				continue;
-			}
+			}*/
 
 			//エッジを一個持ってる状態
 			for (int j = 0; j < divcon[i].size(); j++){
-				node = divcon[i].at(j);
-				node_array_child.push_back(new Node(node, 1));
+				if (j == (divcon[i].size() - 1)){
+					//終点はノードが右隣にいない
+					node = divcon[i].at(divcon[i].size() - 1);
+					node_array_child.push_back(new Node(node, 0));
+				}
+				else{
+					node = divcon[i].at(j);
+					node_array_child.push_back(new Node(node, 1));
+				}
 			}
-			//終点はノードが右隣にいない
-			node = divcon[i].at(divcon[i].size() - 1);
-			node_array_child.push_back(new Node(node, 0));
+			
 
 			//ノードの連結操作
 			Node *this_node;
@@ -152,7 +157,7 @@ public:
 			for (int i = 0; i < node_array.size(); i++){
 				for (int j = 0; j < node_array[i].size(); j++){
 					Voronoi vor;
-					vor.mkVoronoiDelaunay(src_img, former_node, node_array[i]);
+				//	vor.mkVoronoiDelaunay(src_img, former_node, node_array[i]);
 				//	vor.deforme(src_img, node_array[i], vor.subdiv);
 
 				}
