@@ -15,12 +15,16 @@
 #define HUE 80
 #define SPACESIZE 10
 #define EFFECT_FLAG 1
+#define BOX_WIDTH 20
+#define BOX_HEIGHT 20
 
 Dot dot;
 CatmullSpline catmull;
 Graph graph;
 Effect effect;
 vector<vector<Node *>> former_node_array;
+vector<vector<vector<Node *>>> box_node;
+
 int test_count = 1;
 
 void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
@@ -32,7 +36,7 @@ void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vector<Node *>> &node_array){
 	graph.toGraph(src_img, dot.divide_contours, prenode_array);
 	graph.setCorner(src_img, prenode_array, node_array);
-	graph.deformeNode(src_img, node_array, ::former_node_array);
+	graph.deformeNode(src_img, node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
 }
 
 void doImwrite(vector<vector<Node *>> node_array, int rows, int cols){
@@ -51,16 +55,16 @@ void doImwrite(vector<vector<Node *>> node_array, int rows, int cols){
 void removeNodes(vector<vector<Node *>> &arr){
 	for (vector<vector<Node *>>::iterator it = arr.begin(); it != arr.end(); it++){
 		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
-			//if ((*itra) == NULL) break;
 			delete (*itra);
 		}
 	}
 }
 
+
+
 void removeFormerNodes(){
 	for (vector<vector<Node *>>::iterator it = ::former_node_array.begin(); it != ::former_node_array.end(); it++){
 		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
-			//if ((*itra) == NULL) break;
 			delete (*itra);
 		}
 	}
@@ -68,7 +72,7 @@ void removeFormerNodes(){
 	::former_node_array.shrink_to_fit();
 }
 
-void copyNodes(vector<vector<Node *>> node_array){
+void copyNodes(vector<vector<Node *>> node_array, vector<vector<Node *>> &former_node_array){
 	for (int i = 0; i < node_array.size(); i++){
 		vector<Node *> node_array_child;
 		for (int j = 0; j < node_array[i].size(); j++){
@@ -108,7 +112,39 @@ void copyNodes(vector<vector<Node *>> node_array){
 				}
 			}
 		}
-		::former_node_array.push_back(node_array_child);
+		former_node_array.push_back(node_array_child);
+	}
+}
+
+//for finding near points
+//近似点を探すための3次元vectorを生成
+void mkBoxNode(cv::Mat src_img, vector<vector<vector<Node *>>> &box_node){
+	int wimg = 0;
+	int himg = 0;
+
+	box_node.clear();
+	box_node.shrink_to_fit();
+	for (int i = 0; i < src_img.cols; i += BOX_WIDTH){
+		wimg++;
+	}
+	for (int i = 0; i < src_img.rows; i += BOX_HEIGHT){
+		himg++;
+	}
+	box_node.resize(himg + 1);
+	for (int i = 0; i < himg + 1; i++){
+		box_node[i].resize(wimg + 1);
+	}
+}
+
+void copyNodesInfo(cv::Mat &src_img, vector<vector<Node *>> node_array, vector<vector<vector<Node *>>> &box_node, vector<vector<Node *>> former_node_array){
+	//former_node_arrayの点を入れていく
+	for (int i = 0; i < former_node_array.size(); i++){
+		for (int j = 0; j < former_node_array[i].size(); j++){
+			Node *node = former_node_array[i].at(j);	
+			int x = node->getNodeX()/BOX_WIDTH;
+			int y = node->getNodeY()/BOX_HEIGHT;
+			box_node[y].at(x).push_back(node);
+		}
 	}
 }
 
@@ -130,7 +166,9 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 
 	//メモリ解放
 	if (prenode_array.size() > 0) {
-		copyNodes(node_array);
+		mkBoxNode(src_img, ::box_node);
+		copyNodes(node_array, former_node_array);
+		copyNodesInfo(src_img, node_array, ::box_node, former_node_array);
 		removeNodes(prenode_array);
 		prenode_array.clear();
 		node_array.clear();
@@ -173,8 +211,7 @@ void main() {
 			depth.setNormalizeDepth(depth.bodyDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
 			result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
-			/* EFFECT_FLAG=1ならば、残像ありversion */
-			if (EFFECT_FLAG){
+			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
 				doAfterImg(result_img, depth.contourImage, afterimg_array);
 			}
 			else

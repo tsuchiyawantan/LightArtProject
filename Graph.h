@@ -144,8 +144,26 @@ public:
 		}
 	}
 
-	void deformeNode(cv::Mat src_img, vector<vector<Node *>> &node_array, vector<vector<Node *>> &former_node){
-		if (former_node.size() == 0){
+	Node *findNearNode(Node *node, vector<Node *> near_node){
+		int min = INFINITY;
+		Node *ans_node = NULL;
+		int x = node->getNodeX();
+		int y = node->getNodeY();
+		for (int i = 0; i < near_node.size(); i++){
+			Node *n_node = near_node.at(i);
+			int n_x = n_node->getNodeX();
+			int n_y = n_node->getNodeY();
+			float dist = sqrt((x - n_x)*(x - n_x) + (y - n_y)*(y - n_y));
+			if (dist < min) {
+				min = dist;
+				ans_node = n_node;
+			}
+		}
+		return ans_node;
+	}
+
+	void deformeNode(cv::Mat src_img, vector<vector<Node *>> &node_array, vector<vector<vector<Node *>>> box_node, int bw, int bh){
+		if (box_node.size() == 0){
 			for (int i = 0; i < node_array.size(); i++){
 				for (int j = 0; j < node_array[i].size(); j++){
 					Node *node = node_array[i].at(j);
@@ -156,10 +174,16 @@ public:
 		else {
 			for (int i = 0; i < node_array.size(); i++){
 				for (int j = 0; j < node_array[i].size(); j++){
-					Voronoi vor;
-				//	vor.mkVoronoiDelaunay(src_img, former_node, node_array[i]);
-				//	vor.deforme(src_img, node_array[i], vor.subdiv);
+					Node *node = node_array[i].at(j);
+					int x = node_array[i].at(j)->getNodeX();
+					int y = node_array[i].at(j)->getNodeY();
 
+					Node *near_node = findNearNode(node, box_node[y/bh].at(x/bw));
+					//(*node).circleNode((*node).getNodeX(), (*node).getNodeY());
+
+					if (near_node == NULL) { cout << "not near" << endl;  node->circleNode(x, y); }
+					else { cout << "NEAR" << endl; node->circleNode(near_node->getNodeX(), near_node->getNodeY()); }
+					
 				}
 			}		
 		}

@@ -5,7 +5,7 @@
 
 using namespace std;
 
-#define R 3
+#define R 2
 
 class Node{
 private:
