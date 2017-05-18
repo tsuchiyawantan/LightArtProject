@@ -103,43 +103,6 @@ public:
 		}
 	}
 
-	void drawLine(cv::Mat &resultImg, vector<pair<int, int>> &contours, int hue){
-		NeonDesign design;
-		int b = 0, g = 0, r = 0;
-		vector<pair<int, int>> ctr;
-
-		design.rgb(hue, 255, 255 - 100, b, g, r);
-		for (int i = 0; i < contours.size(); i++){
-			int y = contours.at(i).first;
-			int x = contours.at(i).second;
-			if (i >= contours.size() || i + 1 >= contours.size() || i + 2 >= contours.size() || i + 3 >= contours.size()) break;
-			if (i == 0){
-				for (double t = 0; t <= 1.0; t += 0.1){
-					y = catmullRomFirstLast(contours.at(0).first, contours.at(1).first, t);
-					x = catmullRomFirstLast(contours.at(0).second, contours.at(1).second, t);
-					ctr.push_back(make_pair(y, x));
-					circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
-				}
-			}
-			for (double t = 0; t <= 1.0; t += 0.05){
-				y = catmullRom(contours.at(i).first, contours.at(i + 1).first, contours.at(i + 2).first, contours.at(i + 3).first, t);
-				x = catmullRom(contours.at(i).second, contours.at(i + 1).second, contours.at(i + 2).second, contours.at(i + 3).second, t);
-				ctr.push_back(make_pair(y, x));
-				circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
-			}
-			if (i == contours.size() - 4){
-				for (double t = 0; t <= 1.0; t += 0.1){
-					y = catmullRomFirstLast(contours.at(contours.size() - 2).first, contours.at(contours.size() - 1).first, t);
-					x = catmullRomFirstLast(contours.at(contours.size() - 2).second, contours.at(contours.size() - 1).second, t);
-					ctr.push_back(make_pair(y, x));
-					circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
-				}
-			}
-
-		}
-		catmullLine.push_back(ctr);
-	}
-
 	void drawLine(cv::Mat &resultImg, vector<vector<Node *>> node_array, int hue){
 		NeonDesign design;
 		int b = 0, g = 0, r = 0;
@@ -157,7 +120,7 @@ public:
 				int y = (*node).getNodeY();
 				int x = (*node).getNodeX();
 				if (j >= node_array[i].size() || j + 1 >= node_array[i].size() || j + 2 >= node_array[i].size() || j + 3 >= node_array[i].size()) break;
-				if (j == 0){
+				if (j == 0){ //始点 
 					Node *first_node = node_array[i].at(0);
 					Node *second_node = node_array[i].at(1);
 					first.y = (*first_node).getNodeY();
@@ -189,7 +152,7 @@ public:
 					ctr.push_back(make_pair(y, x));
 					circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
 				}
-				if (i == node_array[i].size() - 4){
+				if (j == node_array[i].size() - 4){ //（終点-4）番目
 					Node *third_node = node_array[i].at(node_array[i].size() - 2);
 					Node *forth_node = node_array[i].at(node_array[i].size() - 1);
 					third.y = (*third_node).getNodeY();

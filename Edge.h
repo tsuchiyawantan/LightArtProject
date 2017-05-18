@@ -8,20 +8,33 @@ class Node;
 
 class Edge{
 private:
-	Node *node1;
-	Node *node2;
+	const Node *node1;
+	const Node *node2;
 public:
 	//エッジのノード
 	Edge(Node *mynode){
 		node1 = mynode;
 	}
 
-	void setNode(Node *node){
+	Edge(const Node& mynode){
+		node1 = &mynode;
+	}
+
+	void setNode1(Node *node){
+		node1 = node;
+	}
+	
+	void setNode2(Node *node){
 		node2 = node;
 	}
 
 	//ポインタ返し
-	Node *getNode(){
+	const Node *getNode1(){
+		return node1;
+	}
+	
+	//ポインタ返し
+	const Node *getNode2(){
 		return node2;
 	}
 };

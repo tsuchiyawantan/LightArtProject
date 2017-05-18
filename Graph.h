@@ -6,8 +6,6 @@
 
 using namespace std;
 
-
-
 class Graph{
 private:
 public:
@@ -20,22 +18,18 @@ public:
 			vector<Node *> node_array_child;
 			cv::Point node;
 
-			//エッジがない場合＝ノードが右隣にいない
-			if (divcon[i].size() == 1) {
-				node = divcon[i].at(0);
-				node_array_child.push_back(new Node(node, 0));
-				continue;
-			}
-
-			//ノードの生成
 			//エッジを一個持ってる状態
 			for (int j = 0; j < divcon[i].size(); j++){
-				node = divcon[i].at(j);
-				node_array_child.push_back(new Node(node, 1));
+				if (j == (divcon[i].size() - 1)){
+					//終点はノードが右隣にいない
+					node = divcon[i].at(divcon[i].size() - 1);
+					node_array_child.push_back(new Node(node, 0));
+				}
+				else{
+					node = divcon[i].at(j);
+					node_array_child.push_back(new Node(node, 1));
+				}
 			}
-			//終点はノードが右隣にいない
-			node = divcon[i].at(divcon[i].size() - 1);
-			node_array_child.push_back(new Node(node, 0));
 
 			//ノードの連結操作
 			Node *this_node;
@@ -46,7 +40,7 @@ public:
 				if (l == 0){ //始点
 					this_node = node_array_child.at(l);
 					next_node = node_array_child.at(l + 1);
-					(*this_node).addEdge(next_node, 0);
+					(*this_node).addEdgeNode2(next_node, 0);
 				}
 				else if (l == node_array_child.size() - 1){ //終点
 					this_node = node_array_child.at(l);
@@ -54,18 +48,18 @@ public:
 					int edgearray_num = (*prev_node).hasEdge(this_node);
 					if (edgearray_num >= 0){
 						Edge *edge = (*prev_node).getEdge(edgearray_num);
-						(*this_node).setEdge(edge);
+						(*this_node).addEdge(edge);
 					}
 				}
 				else {
 					this_node = node_array_child.at(l);
 					prev_node = node_array_child.at(l - 1);
 					next_node = node_array_child.at(l + 1);
-					(*this_node).addEdge(next_node, 0);
+					(*this_node).addEdgeNode2(next_node, 0);
 					int edgearray_num = (*prev_node).hasEdge(this_node);
 					if (edgearray_num >= 0){
 						Edge *edge = (*prev_node).getEdge(edgearray_num);
-						(*this_node).setEdge(edge);
+						(*this_node).addEdge(edge);
 					}
 				}
 			}
@@ -92,23 +86,19 @@ public:
 
 	//点列の角であろう点だけをset
 	void setCorner(cv::Mat& src_img, vector<vector<Node *>> &node_array, vector<vector<Node *>> &newnode_array){
+		vector<Node *> node_array_child;
 		cv::Point start;
 		cv::Point goal;
 		cv::Point mid;
 		cv::Point forward;
-		vector<cv::Point2f> corner;
-		vector<Node *> node_array_child;
 		Node *start_node;
 		Node *goal_node;
 		Node *forward_node;
-		int di = 0;
+		int di;
 		int j = 0;
 
 		for (int i = 0; i < node_array.size(); i++){
-			corner.clear();
 			node_array_child.clear();
-			//スタートの点
-			//corner.push_back(cv::Point2f(divideContours[i].at(0).x, divideContours[i].at(0).y));
 			di = 1;
 			//2個先の点と直線を引く
 			//直線の中点の8近傍に1個先の点がいなければ、1個先の点は角の可能性あり
@@ -126,19 +116,17 @@ public:
 				mid.x = (start.x + goal.x) / 2;
 
 				if (!dotExist(src_img, mid, forward)){
-					corner.push_back(cv::Point2f(forward.x, forward.y));
 					di = 1;
 				}
 				//角じゃない点が3回続いたら、1点間引く
 				//詰まった線ではなく、シュッとした線になる
 				if (di % 3 == 0){
-					di = 0;
+					di = 1;
 					node_array_child.pop_back();
 				}
 				node_array_child.push_back(start_node);
 				di++;
 			}
-			//残った2ノード
 			while (j < node_array[i].size()){
 				node_array_child.push_back(node_array[i].at(j));
 				j++;
@@ -147,13 +135,47 @@ public:
 		}
 	}
 
-	void deformeNode(vector<vector<Node *>> &node_array){
-		for (int i = 0; i < node_array.size(); i++){
-			for (int j = 0; j < node_array[i].size(); j++){
-				Node *node = node_array[i].at(j);
-				(*node).circleNode();
+	Node *findNearNode(Node *node, vector<Node *> near_node){
+		int min = INFINITY;
+		Node *ans_node = NULL;
+		int x = node->getNodeX();
+		int y = node->getNodeY();
+		for (int i = 0; i < near_node.size(); i++){
+			Node *n_node = near_node.at(i);
+			int n_x = n_node->getNodeX();
+			int n_y = n_node->getNodeY();
+			float dist = sqrt((x - n_x)*(x - n_x) + (y - n_y)*(y - n_y));
+			if (dist < min) {
+				min = dist;
+				ans_node = n_node;
+			}
+		}
+		return ans_node;
+	}
+
+	void deformeNode(cv::Mat src_img, vector<vector<Node *>> &node_array, vector<vector<vector<Node *>>> box_node, int bw, int bh){
+		if (box_node.size() == 0){
+			for (int i = 0; i < node_array.size(); i++){
+				for (int j = 0; j < node_array[i].size(); j++){
+					Node *node = node_array[i].at(j);
+					int x = node->getNodeX();
+					int y = node->getNodeY();
+					(*node).circleNode(x, y);
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < node_array.size(); i++){
+				for (int j = 0; j < node_array[i].size(); j +=2){
+					Node *node = node_array[i].at(j);
+					int x = node_array[i].at(j)->getNodeX();
+					int y = node_array[i].at(j)->getNodeY();
+					Node *near_node = findNearNode(node, box_node[y / bh].at(x / bw));
+
+					if (near_node == NULL) { node->circleNode(x, y); }
+					else { node->circleNode(near_node->getNodeX(), near_node->getNodeY()); }
+				}
 			}
 		}
 	}
-
 };
