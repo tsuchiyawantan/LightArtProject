@@ -3,7 +3,6 @@
 #include <time.h>
 #include "Node.h"
 #include "Edge.h"
-#include "Voronoi.h"
 
 using namespace std;
 
@@ -19,13 +18,6 @@ public:
 			vector<Node *> node_array_child;
 			cv::Point node;
 
-			//エッジがない場合＝ノードが右隣にいない
-		/*	if (divcon[i].size() == 1) {
-				node = divcon[i].at(0);
-				node_array_child.push_back(new Node(node, 0));
-				continue;
-			}*/
-
 			//エッジを一個持ってる状態
 			for (int j = 0; j < divcon[i].size(); j++){
 				if (j == (divcon[i].size() - 1)){
@@ -38,7 +30,7 @@ public:
 					node_array_child.push_back(new Node(node, 1));
 				}
 			}
-			
+
 
 			//ノードの連結操作
 			Node *this_node;
@@ -167,25 +159,24 @@ public:
 			for (int i = 0; i < node_array.size(); i++){
 				for (int j = 0; j < node_array[i].size(); j++){
 					Node *node = node_array[i].at(j);
-					(*node).circleNode((*node).getNodeX(), (*node).getNodeY());
+					int x = node->getNodeX();
+					int y = node->getNodeY();
+					(*node).circleNode(x, y);
 				}
 			}
 		}
 		else {
 			for (int i = 0; i < node_array.size(); i++){
-				for (int j = 0; j < node_array[i].size(); j++){
+				for (int j = 0; j < node_array[i].size(); j +=2){
 					Node *node = node_array[i].at(j);
 					int x = node_array[i].at(j)->getNodeX();
 					int y = node_array[i].at(j)->getNodeY();
-
-					Node *near_node = findNearNode(node, box_node[y/bh].at(x/bw));
-					//(*node).circleNode((*node).getNodeX(), (*node).getNodeY());
+					Node *near_node = findNearNode(node, box_node[y / bh].at(x / bw));
 
 					if (near_node == NULL) { cout << "not near" << endl;  node->circleNode(x, y); }
 					else { cout << "NEAR" << endl; node->circleNode(near_node->getNodeX(), near_node->getNodeY()); }
-					
 				}
-			}		
+			}
 		}
 	}
 };

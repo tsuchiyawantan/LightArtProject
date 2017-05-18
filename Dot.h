@@ -122,6 +122,7 @@ public:
 		}
 		return 0;
 	}
+
 	void checkUsed8(cv::Mat &srcImg, vector<pair<int, int>> &ctr, vector<int> &dir, int y, int x){
 		vector<pair<int, int>> n = { { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 } };
 		vector<int> j = { 0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7 };
@@ -141,6 +142,7 @@ public:
 			i++;
 		}
 	}
+
 	void makeLine(cv::Mat &srcImg){
 		vector<pair<int, int>> ctr;//一つの点列の入れ物
 		vector<int> dir;
@@ -161,13 +163,14 @@ public:
 				}
 				//ここでも見る。他の点がいればctrの最後に入れる
 				checkUsed8(srcImg, ctr, dir, y, x);
-				if (ctr.size() > 10)
+				if (ctr.size() > 40)
 					contours.push_back(ctr);
 				ctr.clear();
 				dir.clear();
 			}
 		}
 	}
+
 	//点をspaceSizeだけ間引く
 	void divideCon(int spaceSize){
 		for (int i = 0; i < contours.size(); i++){

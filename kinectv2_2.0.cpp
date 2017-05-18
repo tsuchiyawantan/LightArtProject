@@ -33,13 +33,7 @@ void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 	catmull.drawInline(result_img, HUE);
 }
 
-void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vector<Node *>> &node_array){
-	graph.toGraph(src_img, dot.divide_contours, prenode_array);
-	graph.setCorner(src_img, prenode_array, node_array);
-	graph.deformeNode(src_img, node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
-}
-
-void doImwrite(vector<vector<Node *>> node_array, int rows, int cols){
+void doIm(vector<vector<Node *>> node_array, int rows, int cols){
 	cv::Mat image = cv::Mat(rows, cols, CV_8UC3, cv::Scalar(0, 0, 0));
 	for (int i = 0; i < node_array.size(); i++){
 		for (int j = 0; j < node_array[i].size(); j++){
@@ -49,7 +43,15 @@ void doImwrite(vector<vector<Node *>> node_array, int rows, int cols){
 			circle(image, cv::Point(x, y), 5, cv::Scalar(0, 255, 0), -1, 8);
 		}
 	}
-	cv::imwrite("image/image" + to_string(test_count++) + ".png", image);
+	//cv::imwrite("image/image" + to_string(test_count++) + ".png", image);
+	cv::imshow("corner", image);
+}
+
+void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vector<Node *>> &node_array){
+	graph.toGraph(src_img, dot.divide_contours, prenode_array);
+	graph.setCorner(src_img, prenode_array, node_array);
+	//doIm(node_array, src_img.rows, src_img.cols);
+	graph.deformeNode(src_img, node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
 }
 
 void removeNodes(vector<vector<Node *>> &arr){
@@ -59,8 +61,6 @@ void removeNodes(vector<vector<Node *>> &arr){
 		}
 	}
 }
-
-
 
 void removeFormerNodes(){
 	for (vector<vector<Node *>>::iterator it = ::former_node_array.begin(); it != ::former_node_array.end(); it++){
@@ -130,9 +130,9 @@ void mkBoxNode(cv::Mat src_img, vector<vector<vector<Node *>>> &box_node){
 	for (int i = 0; i < src_img.rows; i += BOX_HEIGHT){
 		himg++;
 	}
-	box_node.resize(himg + 1);
+	box_node.resize(himg + 5);
 	for (int i = 0; i < himg + 1; i++){
-		box_node[i].resize(wimg + 1);
+		box_node[i].resize(wimg + 5);
 	}
 }
 

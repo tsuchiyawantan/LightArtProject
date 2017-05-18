@@ -5,8 +5,6 @@
 
 using namespace std;
 
-#define R 2
-
 class Node{
 private:
 	cv::Point node;
@@ -120,9 +118,10 @@ public:
 		return min + (int)(rand()*(max - min + 1.0) / (1.0 + RAND_MAX));
 	}
 
-	void circleNode(int x, int y){
+	void circleNode(int x, int y, int R=4){
 		node.x = x + getRandom(-R, R);
 		node.y = y + getRandom(-R, R);
+		if (node.x < 0 || node.y < 0) circleNode(x, y, R);
 	}
 
 	bool hasRightEdge() const{
