@@ -94,15 +94,12 @@ public:
 		Node *start_node;
 		Node *goal_node;
 		Node *forward_node;
-		int di;
-		int j = 0;
 
 		for (int i = 0; i < node_array.size(); i++){
 			node_array_child.clear();
-			di = 1;
 			//2個先の点と直線を引く
 			//直線の中点の8近傍に1個先の点がいなければ、1個先の点は角の可能性あり
-			for (j = 0; j < node_array[i].size() - 2; j++){
+			for (int j = 0; j < node_array[i].size(); j++){
 				start_node = node_array[i].at(j);
 				goal_node = node_array[i].at(j + 2);
 				forward_node = node_array[i].at(j + 1);
@@ -115,21 +112,16 @@ public:
 				mid.y = (start.y + goal.y) / 2;
 				mid.x = (start.x + goal.x) / 2;
 
+				if (j==0){
+					node_array_child.push_back(start_node);
+				}
 				if (!dotExist(src_img, mid, forward)){
-					di = 1;
+					node_array_child.push_back(forward_node);
 				}
-				//角じゃない点が3回続いたら、1点間引く
-				//詰まった線ではなく、シュッとした線になる
-				if (di % 3 == 0){
-					di = 1;
-					node_array_child.pop_back();
+				if (j == node_array[i].size() - 3){
+					node_array_child.push_back(goal_node);
+					break;
 				}
-				node_array_child.push_back(start_node);
-				di++;
-			}
-			while (j < node_array[i].size()){
-				node_array_child.push_back(node_array[i].at(j));
-				j++;
 			}
 			newnode_array.push_back(node_array_child);
 		}
