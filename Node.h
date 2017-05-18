@@ -118,7 +118,7 @@ public:
 		return min + (int)(rand()*(max - min + 1.0) / (1.0 + RAND_MAX));
 	}
 
-	void circleNode(int x, int y, int R=4){
+	void circleNode(int x, int y, int R=3){
 		node.x = x + getRandom(-R, R);
 		node.y = y + getRandom(-R, R);
 		if (node.x < 0 || node.y < 0) circleNode(x, y, R);

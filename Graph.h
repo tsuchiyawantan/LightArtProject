@@ -31,7 +31,6 @@ public:
 				}
 			}
 
-
 			//ƒm[ƒh‚Ì˜AŒ‹‘€ì
 			Node *this_node;
 			Node *prev_node;
@@ -173,8 +172,8 @@ public:
 					int y = node_array[i].at(j)->getNodeY();
 					Node *near_node = findNearNode(node, box_node[y / bh].at(x / bw));
 
-					if (near_node == NULL) { cout << "not near" << endl;  node->circleNode(x, y); }
-					else { cout << "NEAR" << endl; node->circleNode(near_node->getNodeX(), near_node->getNodeY()); }
+					if (near_node == NULL) { node->circleNode(x, y); }
+					else { node->circleNode(near_node->getNodeX(), near_node->getNodeY()); }
 				}
 			}
 		}
