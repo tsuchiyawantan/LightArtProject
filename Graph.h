@@ -32,6 +32,7 @@ public:
 			}
 
 			//ノードの連結操作
+			/*
 			Node *this_node;
 			Node *prev_node;
 			Node *next_node;
@@ -62,8 +63,44 @@ public:
 						(*this_node).addEdge(edge);
 					}
 				}
-			}
+			}*/
 			node_array.push_back(node_array_child);
+		}
+	}
+
+	void setEdge(cv::Mat& src_img, vector<vector<Node *>> &node_array){
+		for (int i = 0; i < node_array.size(); i++){
+			for (int j = 0; j < node_array[i].size(); j++){
+				Node *this_node;
+				Node *prev_node;
+				Node *next_node;
+
+				if (j == 0){ //始点
+					this_node = node_array[i].at(j);
+					next_node = node_array[i].at(j + 1);
+					(*this_node).addEdgeNode2(next_node, 0);
+				}
+				else if (j == node_array[i].size() - 1){ //終点
+					this_node = node_array[i].at(j);
+					prev_node = node_array[i].at(j - 1);
+					int edgearray_num = (*prev_node).hasEdge(this_node);
+					if (edgearray_num >= 0){
+						Edge *edge = (*prev_node).getEdge(edgearray_num);
+						(*this_node).addEdge(edge);
+					}
+				}
+				else {
+					this_node = node_array[i].at(j);
+					prev_node = node_array[i].at(j - 1);
+					next_node = node_array[i].at(j + 1);
+					(*this_node).addEdgeNode2(next_node, 0);
+					int edgearray_num = (*prev_node).hasEdge(this_node);
+					if (edgearray_num >= 0){
+						Edge *edge = (*prev_node).getEdge(edgearray_num);
+						(*this_node).addEdge(edge);
+					}
+				}
+			}
 		}
 	}
 
@@ -97,8 +134,6 @@ public:
 
 		for (int i = 0; i < node_array.size(); i++){
 			node_array_child.clear();
-			//2個先の点と直線を引く
-			//直線の中点の8近傍に1個先の点がいなければ、1個先の点は角の可能性あり
 			for (int j = 0; j < node_array[i].size(); j++){
 				start_node = node_array[i].at(j);
 				goal_node = node_array[i].at(j + 2);
