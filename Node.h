@@ -10,16 +10,13 @@ private:
 	cv::Point node;
 	//0番目は右隣のエッジ、1番目は左隣へのエッジ
 	vector<Edge *> edge_array;
-	bool has_right_edge = false;
+	bool has_right_edge = true;
 public:
 
-	Node(cv::Point mynode, int has_edge){
+	Node(cv::Point mynode){
 	//	srand((unsigned int)time(NULL));
 		node = mynode;
-		if (has_edge) {
-			has_right_edge = true;
-			edge_array.push_back(new Edge(this));
-		}
+		edge_array.push_back(new Edge(this));
 	}
 	Node(){}
 	~Node(){}
@@ -31,7 +28,6 @@ public:
 		//eddgeのコピーコンストラクタが必要
 		copy_node.getMyNode(node);
 		if (copy_node.hasRightEdge()) {
-			has_right_edge = true;
 			edge_array.push_back(new Edge(this));
 		}
 	}
@@ -48,7 +44,6 @@ public:
 		}
 		copy_node.getMyNode(node);
 		if (copy_node.hasRightEdge()) {
-			has_right_edge = true;
 			Edge *o_edge = new Edge(copy_node);
 			edge_array.push_back(o_edge);
 		}
@@ -101,6 +96,10 @@ public:
 	}
 	
 	int getEdgeNum() const{
+		int num = 0;
+		for (int i = 0; i < edge_array.size(); i++){
+			if (edge_array.at(i)->getNode2() != NULL) num++;
+		}
 		return edge_array.size();
 	}
 
@@ -127,4 +126,9 @@ public:
 	bool hasRightEdge() const{
 		return has_right_edge;
 	}
+
+	void setRightEdge(bool flag){
+		has_right_edge = flag;
+	}
+
 };

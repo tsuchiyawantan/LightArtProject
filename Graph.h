@@ -20,15 +20,8 @@ public:
 
 			//エッジを一個持ってる状態
 			for (int j = 0; j < divcon[i].size(); j++){
-				if (j == (divcon[i].size() - 1)){
-					//終点はノードが右隣にいない
-					node = divcon[i].at(divcon[i].size() - 1);
-					node_array_child.push_back(new Node(node, 0));
-				}
-				else{
 					node = divcon[i].at(j);
-					node_array_child.push_back(new Node(node, 1));
-				}
+					node_array_child.push_back(new Node(node));
 			}
 
 			//ノードの連結操作
@@ -83,6 +76,7 @@ public:
 				else if (j == node_array[i].size() - 1){ //終点
 					this_node = node_array[i].at(j);
 					prev_node = node_array[i].at(j - 1);
+					this_node->setRightEdge(false);
 					int edgearray_num = (*prev_node).hasEdge(this_node);
 					if (edgearray_num >= 0){
 						Edge *edge = (*prev_node).getEdge(edgearray_num);
