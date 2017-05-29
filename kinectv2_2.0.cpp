@@ -50,6 +50,7 @@ void doIm(vector<vector<Node *>> node_array, int rows, int cols){
 void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vector<Node *>> &node_array){
 	graph.toGraph(src_img, dot.divide_contours, prenode_array);
 	graph.setCorner(src_img, prenode_array, node_array);
+	graph.setEdge(src_img, node_array);
 	//doIm(node_array, src_img.rows, src_img.cols);
 	graph.deformeNode(src_img, node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
 }

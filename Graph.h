@@ -20,18 +20,12 @@ public:
 
 			//エッジを一個持ってる状態
 			for (int j = 0; j < divcon[i].size(); j++){
-				if (j == (divcon[i].size() - 1)){
-					//終点はノードが右隣にいない
-					node = divcon[i].at(divcon[i].size() - 1);
-					node_array_child.push_back(new Node(node, 0));
-				}
-				else{
 					node = divcon[i].at(j);
-					node_array_child.push_back(new Node(node, 1));
-				}
+					node_array_child.push_back(new Node(node));
 			}
 
 			//ノードの連結操作
+			/*
 			Node *this_node;
 			Node *prev_node;
 			Node *next_node;
@@ -62,8 +56,45 @@ public:
 						(*this_node).addEdge(edge);
 					}
 				}
-			}
+			}*/
 			node_array.push_back(node_array_child);
+		}
+	}
+
+	void setEdge(cv::Mat& src_img, vector<vector<Node *>> &node_array){
+		for (int i = 0; i < node_array.size(); i++){
+			for (int j = 0; j < node_array[i].size(); j++){
+				Node *this_node;
+				Node *prev_node;
+				Node *next_node;
+
+				if (j == 0){ //始点
+					this_node = node_array[i].at(j);
+					next_node = node_array[i].at(j + 1);
+					(*this_node).addEdgeNode2(next_node, 0);
+				}
+				else if (j == node_array[i].size() - 1){ //終点
+					this_node = node_array[i].at(j);
+					prev_node = node_array[i].at(j - 1);
+					this_node->setRightEdge(false);
+					int edgearray_num = (*prev_node).hasEdge(this_node);
+					if (edgearray_num >= 0){
+						Edge *edge = (*prev_node).getEdge(edgearray_num);
+						(*this_node).addEdge(edge);
+					}
+				}
+				else {
+					this_node = node_array[i].at(j);
+					prev_node = node_array[i].at(j - 1);
+					next_node = node_array[i].at(j + 1);
+					(*this_node).addEdgeNode2(next_node, 0);
+					int edgearray_num = (*prev_node).hasEdge(this_node);
+					if (edgearray_num >= 0){
+						Edge *edge = (*prev_node).getEdge(edgearray_num);
+						(*this_node).addEdge(edge);
+					}
+				}
+			}
 		}
 	}
 
@@ -94,15 +125,10 @@ public:
 		Node *start_node;
 		Node *goal_node;
 		Node *forward_node;
-		int di;
-		int j = 0;
 
 		for (int i = 0; i < node_array.size(); i++){
 			node_array_child.clear();
-			di = 1;
-			//2個先の点と直線を引く
-			//直線の中点の8近傍に1個先の点がいなければ、1個先の点は角の可能性あり
-			for (j = 0; j < node_array[i].size() - 2; j++){
+			for (int j = 0; j < node_array[i].size(); j++){
 				start_node = node_array[i].at(j);
 				goal_node = node_array[i].at(j + 2);
 				forward_node = node_array[i].at(j + 1);
@@ -115,21 +141,16 @@ public:
 				mid.y = (start.y + goal.y) / 2;
 				mid.x = (start.x + goal.x) / 2;
 
+				if (j==0){
+					node_array_child.push_back(start_node);
+				}
 				if (!dotExist(src_img, mid, forward)){
-					di = 1;
+					node_array_child.push_back(forward_node);
 				}
-				//角じゃない点が3回続いたら、1点間引く
-				//詰まった線ではなく、シュッとした線になる
-				if (di % 3 == 0){
-					di = 1;
-					node_array_child.pop_back();
+				if (j == node_array[i].size() - 3){
+					node_array_child.push_back(goal_node);
+					break;
 				}
-				node_array_child.push_back(start_node);
-				di++;
-			}
-			while (j < node_array[i].size()){
-				node_array_child.push_back(node_array[i].at(j));
-				j++;
 			}
 			newnode_array.push_back(node_array_child);
 		}
