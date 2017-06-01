@@ -47,12 +47,12 @@ void doIm(vector<vector<Node *>> node_array, int rows, int cols){
 	cv::imshow("corner", image);
 }
 
-void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vector<Node *>> &node_array){
-	graph.toGraph(src_img, dot.divide_contours, prenode_array);
-	graph.setCorner(src_img, prenode_array, node_array);
+void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array, vector<vector<Node *>> &ang_array){
+	graph.toGraph(src_img, dot.divide_contours, node_array);
+	graph.setCorner(src_img, node_array, ang_array);
 	graph.setEdge(src_img, node_array);
 	//doIm(node_array, src_img.rows, src_img.cols);
-	graph.deformeNode(src_img, node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
+	graph.deformeNode(src_img, ang_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
 }
 
 void removeNodes(vector<vector<Node *>> &arr){
@@ -137,7 +137,7 @@ void mkBoxNode(cv::Mat src_img, vector<vector<vector<Node *>>> &box_node){
 	}
 }
 
-void copyNodesInfo(cv::Mat &src_img, vector<vector<Node *>> node_array, vector<vector<vector<Node *>>> &box_node, vector<vector<Node *>> former_node_array){
+void copyNodesInfo(cv::Mat &src_img, vector<vector<vector<Node *>>> &box_node, vector<vector<Node *>> former_node_array){
 	//former_node_array‚Ì“_‚ð“ü‚ê‚Ä‚¢‚­
 	for (int i = 0; i < former_node_array.size(); i++){
 		for (int j = 0; j < former_node_array[i].size(); j++){
@@ -150,15 +150,15 @@ void copyNodesInfo(cv::Mat &src_img, vector<vector<Node *>> node_array, vector<v
 }
 
 void doDot(cv::Mat &src_img, cv::Mat &result_img){
-	vector<vector<Node *>> prenode_array;
 	vector<vector<Node *>> node_array;
+	vector<vector<Node *>> ang_array;
 
 	dot.init();
 	dot.setWhiteDots(src_img);
 	dot.findStart(src_img);
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
-	doGraph(src_img, prenode_array, node_array);
+	doGraph(src_img, node_array, ang_array);
 	doCatmull(result_img, node_array);
 
 	if (former_node_array.size()) {
@@ -166,15 +166,15 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	}
 
 	//ƒƒ‚ƒŠ‰ð•ú
-	if (prenode_array.size() > 0) {
+	if (node_array.size() > 0) {
 		mkBoxNode(src_img, ::box_node);
 		copyNodes(node_array, former_node_array);
-		copyNodesInfo(src_img, node_array, ::box_node, former_node_array);
-		removeNodes(prenode_array);
-		prenode_array.clear();
+		copyNodesInfo(src_img, ::box_node, former_node_array);
+		removeNodes(node_array);
 		node_array.clear();
+		ang_array.clear();
 		node_array.shrink_to_fit();
-		prenode_array.shrink_to_fit();
+		ang_array.shrink_to_fit();
 	}
 }
 
