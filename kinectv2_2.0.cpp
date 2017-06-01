@@ -158,7 +158,7 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	dot.findStart(src_img);
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
-	doGraph(src_img, node_array, prenode_array);
+	doGraph(src_img, prenode_array, node_array);
 	doCatmull(result_img, node_array);
 
 	if (former_node_array.size()) {
