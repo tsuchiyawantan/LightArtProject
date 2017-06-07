@@ -56,12 +56,13 @@ public:
 	void drawInline(cv::Mat &srcImg, int hue){
 		NeonDesign design;
 		int b = 0, g = 0, r = 0;
+		int b_1 = 0, g_1 = 0, r_1 = 0;
 		design.rgb(hue, 255 - 100, 255, b, g, r);
 		for (int i = 0; i < catmullLine.size(); i++){
 			for (int j = 0; j < catmullLine[i].size(); j++){
 				int y = catmullLine[i].at(j).first;
 				int x = catmullLine[i].at(j).second;
-				circle(srcImg, cv::Point(x, y), 0.5, cv::Scalar(b, g, r), -1, 4);
+				circle(srcImg, cv::Point(x, y), 0.5, cv::Scalar(b, g, r), -1, 8);
 			}
 		}
 	}
@@ -106,6 +107,8 @@ public:
 	void drawLine(cv::Mat &resultImg, vector<vector<Node *>> node_array, int hue){
 		NeonDesign design;
 		int b = 0, g = 0, r = 0;
+		int b_1 = 0, g_1 = 0, r_1 = 0;
+
 		vector<pair<int, int>> ctr;
 		cv::Point first;
 		cv::Point second;
@@ -131,8 +134,23 @@ public:
 						y = catmullRomFirstLast(first.y, second.y, t);
 						x = catmullRomFirstLast(first.x, second.x, t);
 						ctr.push_back(make_pair(y, x));
+						circle(resultImg, cv::Point(x, y), 6, cv::Scalar(b, g, r), -1, 8);
+					}
+				}
+				if (j == node_array[i].size() - 4){ //（終点-4）番目
+					Node *third_node = node_array[i].at(node_array[i].size() - 2);
+					Node *forth_node = node_array[i].at(node_array[i].size() - 1);
+					third.y = (*third_node).getNodeY();
+					third.x = (*third_node).getNodeX();
+					forth.y = (*forth_node).getNodeY();
+					forth.x = (*forth_node).getNodeX();
+					for (double t = 0; t <= 1.0; t += 0.005){
+						y = catmullRomFirstLast(third.y, forth.y, t);
+						x = catmullRomFirstLast(third.x, forth.x, t);
+						ctr.push_back(make_pair(y, x));
 						circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
 					}
+					break;
 				}
 				Node *first_node = node_array[i].at(j);
 				Node *second_node = node_array[i].at(j + 1);
@@ -151,20 +169,6 @@ public:
 					x = catmullRom(first.x, second.x, third.x, forth.x, t);
 					ctr.push_back(make_pair(y, x));
 					circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
-				}
-				if (j == node_array[i].size() - 4){ //（終点-4）番目
-					Node *third_node = node_array[i].at(node_array[i].size() - 2);
-					Node *forth_node = node_array[i].at(node_array[i].size() - 1);
-					third.y = (*third_node).getNodeY();
-					third.x = (*third_node).getNodeX();
-					forth.y = (*forth_node).getNodeY();
-					forth.x = (*forth_node).getNodeX();
-					for (double t = 0; t <= 1.0; t += 0.005){
-						y = catmullRomFirstLast(third.y, forth.y, t);
-						x = catmullRomFirstLast(third.x, forth.x, t);
-						ctr.push_back(make_pair(y, x));
-						circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
-					}
 				}
 			}
 		}

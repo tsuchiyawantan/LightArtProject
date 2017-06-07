@@ -51,8 +51,9 @@ void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array, vector<vector
 	graph.toGraph(src_img, dot.divide_contours, node_array);
 	graph.setCorner(src_img, node_array, ang_array);
 	graph.setEdge(src_img, node_array);
-	//doIm(node_array, src_img.rows, src_img.cols);
 	graph.deformeNode(src_img, ang_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
+	//doIm(ang_array, src_img.rows, src_img.cols);
+
 }
 
 void removeNodes(vector<vector<Node *>> &arr){
