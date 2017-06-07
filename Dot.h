@@ -104,6 +104,8 @@ public:
 		vector<pair<int, int>> n = { { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 } };
 		vector<int> j = { 0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7 };
 		int i = 0;
+		int start_y = ctr.at(0).first;
+		int start_x = ctr.at(0).second;
 		while (i < j.size()){
 			int d = dir.back();
 			d = d + j.at(i);
@@ -112,6 +114,11 @@ public:
 			int dy = y + n.at(d).first;
 			int dx = x + n.at(d).second;
 			if (dy < 0 || dy >= srcImg.rows || dx < 0 || dx >= srcImg.cols);
+			else if (srcImg.at<uchar>(dy, dx) == 255 && dy == start_y && dx == start_x){ //円などの場合で始点と終点が一致するとき
+				//cout << "awaa " << i << endl;
+				ctr.push_back(make_pair(dy, dx));
+				return 1;
+			}
 			else if (srcImg.at<uchar>(dy, dx) == 255 && !isExistS(dy, dx, used_dots)) {
 				ctr.push_back(make_pair(dy, dx));
 				used_dots.insert(make_pair(dy, dx));
@@ -156,13 +163,13 @@ public:
 				used_dots.insert(make_pair(y, x));
 				dir.push_back(0);
 				//ここで8近傍見る、他の点列の点がいれば、それをctrのスタートの前に入れる
-				checkUsed8(srcImg, ctr, dir, y, x);
+			//	checkUsed8(srcImg, ctr, dir, y, x);
 				while (insertYX(srcImg, ctr, y, x, dir)){
 					y = ctr.back().first;
 					x = ctr.back().second;
 				}
 				//ここでも見る。他の点がいればctrの最後に入れる
-				checkUsed8(srcImg, ctr, dir, y, x);
+				//checkUsed8(srcImg, ctr, dir, y, x);
 				if (ctr.size() > 40)
 					contours.push_back(ctr);
 				ctr.clear();
