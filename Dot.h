@@ -115,7 +115,6 @@ public:
 			int dx = x + n.at(d).second;
 			if (dy < 0 || dy >= srcImg.rows || dx < 0 || dx >= srcImg.cols);
 			else if (srcImg.at<uchar>(dy, dx) == 255 && dy == start_y && dx == start_x){ //円などの場合で始点と終点が一致するとき
-				//cout << "awaa " << i << endl;
 				ctr.push_back(make_pair(dy, dx));
 				return 1;
 			}
@@ -183,7 +182,7 @@ public:
 		for (int i = 0; i < contours.size(); i++){
 			vector<cv::Point> ctr;
 
-			for (int j = 0; j < contours[i].size(); j = j + spaceSize){
+			for (int j = 0; j < contours[i].size()-1; j = j + spaceSize){
 				ctr.push_back(cv::Point(contours[i].at(j).second, contours[i].at(j).first));
 			}
 			ctr.push_back(cv::Point(contours[i].back().second, contours[i].back().first));

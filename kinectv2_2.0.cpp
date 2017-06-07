@@ -49,6 +49,8 @@ void doIm(vector<vector<Node *>> node_array, int rows, int cols){
 
 void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array, vector<vector<Node *>> &ang_array){
 	graph.toGraph(src_img, dot.divide_contours, node_array);
+	//始点へのエッジを二番目へのエッジに変更する関数はここに入れる
+	graph.setEdgeToOtherNode(src_img, node_array);
 	graph.setCorner(src_img, node_array, ang_array);
 	graph.setEdge(src_img, node_array);
 	graph.deformeNode(src_img, ang_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
@@ -59,7 +61,9 @@ void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array, vector<vector
 void removeNodes(vector<vector<Node *>> &arr){
 	for (vector<vector<Node *>>::iterator it = arr.begin(); it != arr.end(); it++){
 		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
+			if (*itra == NULL) continue;
 			delete (*itra);
+			*itra = NULL;
 		}
 	}
 }
@@ -67,7 +71,9 @@ void removeNodes(vector<vector<Node *>> &arr){
 void removeFormerNodes(){
 	for (vector<vector<Node *>>::iterator it = ::former_node_array.begin(); it != ::former_node_array.end(); it++){
 		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
+			if (*itra == NULL) continue;
 			delete (*itra);
+			*itra = NULL;
 		}
 	}
 	::former_node_array.clear();

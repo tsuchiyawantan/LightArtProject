@@ -20,8 +20,8 @@ public:
 
 			//エッジを一個持ってる状態
 			for (int j = 0; j < divcon[i].size(); j++){
-					node = divcon[i].at(j);
-					node_array_child.push_back(new Node(node));
+				node = divcon[i].at(j);
+				node_array_child.push_back(new Node(node));
 			}
 
 			//ノードの連結操作
@@ -31,31 +31,31 @@ public:
 			Node *next_node;
 
 			for (int l = 0; l < node_array_child.size(); l++){
-				if (l == 0){ //始点
-					this_node = node_array_child.at(l);
-					next_node = node_array_child.at(l + 1);
-					(*this_node).addEdgeNode2(next_node, 0);
-				}
-				else if (l == node_array_child.size() - 1){ //終点
-					this_node = node_array_child.at(l);
-					prev_node = node_array_child.at(l - 1);
-					int edgearray_num = (*prev_node).hasEdge(this_node);
-					if (edgearray_num >= 0){
-						Edge *edge = (*prev_node).getEdge(edgearray_num);
-						(*this_node).addEdge(edge);
-					}
-				}
-				else {
-					this_node = node_array_child.at(l);
-					prev_node = node_array_child.at(l - 1);
-					next_node = node_array_child.at(l + 1);
-					(*this_node).addEdgeNode2(next_node, 0);
-					int edgearray_num = (*prev_node).hasEdge(this_node);
-					if (edgearray_num >= 0){
-						Edge *edge = (*prev_node).getEdge(edgearray_num);
-						(*this_node).addEdge(edge);
-					}
-				}
+			if (l == 0){ //始点
+			this_node = node_array_child.at(l);
+			next_node = node_array_child.at(l + 1);
+			(*this_node).addEdgeNode2(next_node, 0);
+			}
+			else if (l == node_array_child.size() - 1){ //終点
+			this_node = node_array_child.at(l);
+			prev_node = node_array_child.at(l - 1);
+			int edgearray_num = (*prev_node).hasEdge(this_node);
+			if (edgearray_num >= 0){
+			Edge *edge = (*prev_node).getEdge(edgearray_num);
+			(*this_node).addEdge(edge);
+			}
+			}
+			else {
+			this_node = node_array_child.at(l);
+			prev_node = node_array_child.at(l - 1);
+			next_node = node_array_child.at(l + 1);
+			(*this_node).addEdgeNode2(next_node, 0);
+			int edgearray_num = (*prev_node).hasEdge(this_node);
+			if (edgearray_num >= 0){
+			Edge *edge = (*prev_node).getEdge(edgearray_num);
+			(*this_node).addEdge(edge);
+			}
+			}
 			}*/
 			node_array.push_back(node_array_child);
 		}
@@ -98,8 +98,28 @@ public:
 		}
 	}
 
+	void setEdgeToOtherNode(cv::Mat& src_img, vector<vector<Node *>> &node_array){
+		for (int i = 0; i < node_array.size(); i++){
+			int start_x = node_array[i].at(0)->getNodeX();
+			int start_y = node_array[i].at(0)->getNodeY();
+			int end_x = node_array[i].at(node_array[i].size() - 1)->getNodeX();
+			int end_y = node_array[i].at(node_array[i].size() - 1)->getNodeY();
+			if (start_x == end_x && start_y == end_y) {
+				//node_arrayの最後をCからBに変更する
+				//NodeCはdeleteする
+				Node *node_a = node_array[i].at(node_array[i].size() - 2); //合流するノード
+				Node *node_b = node_array[i].at(2); //合流されるノード
+				Node *node_c = node_array[i].at(node_array[i].size() - 1); //終点ノード
+				//node_a->addEdgeNode2(node_b, 0); //エッジのノードをCからBへ変更
+				delete node_c;
+				node_array[i].pop_back();
+				node_array[i].push_back(node_b);
+			}
+		}
+	}
+
 	//8近傍にforwardがあればtrue
-	boolean dotExist(cv::Mat& src_img, cv::Point mid, cv::Point forward){
+	bool dotExist(cv::Mat& src_img, cv::Point mid, cv::Point forward){
 		int n[8][2] = { { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 } };
 		int count = 0;
 		int y = mid.y;
@@ -141,7 +161,7 @@ public:
 				mid.y = (start.y + goal.y) / 2;
 				mid.x = (start.x + goal.x) / 2;
 
-				if (j==0){
+				if (j == 0){
 					node_array_child.push_back(start_node);
 				}
 				if (!dotExist(src_img, mid, forward)){
@@ -187,7 +207,7 @@ public:
 		}
 		else {
 			for (int i = 0; i < node_array.size(); i++){
-				for (int j = 0; j < node_array[i].size(); j +=2){
+				for (int j = 0; j < node_array[i].size(); j += 2){
 					Node *node = node_array[i].at(j);
 					int x = node_array[i].at(j)->getNodeX();
 					int y = node_array[i].at(j)->getNodeY();
