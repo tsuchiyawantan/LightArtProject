@@ -85,6 +85,17 @@ void copyNodes(vector<vector<Node *>> node_array, vector<vector<Node *>> &former
 		vector<Node *> node_array_child;
 		for (int j = 0; j < node_array[i].size(); j++){
 			Node node = (*node_array[i].at(j));
+			if (j == node_array[i].size() - 1){
+				int second_x = node_array[i].at(2)->getNodeX();
+				int second_y = node_array[i].at(2)->getNodeY();
+				int end_x = node_array[i].at(node_array[i].size() - 1)->getNodeX();
+				int end_y = node_array[i].at(node_array[i].size() - 1)->getNodeY();
+				if (second_x == end_x && second_y == end_y) {
+					Node *node_b = node_array_child.at(2); //合流されるノード
+					node_array_child.push_back(node_b);
+					break;
+				}
+			}
 			node_array_child.push_back(new Node(node));
 		}
 
@@ -100,6 +111,8 @@ void copyNodes(vector<vector<Node *>> node_array, vector<vector<Node *>> &former
 				(*this_node).addEdgeNode2(next_node, 0);
 			}
 			else if (l == node_array_child.size() - 1){ //終点
+				//エッジが3つある場合の分岐方法を考えなくてはならない
+				//エッジ3つ入ってない
 				this_node = node_array_child.at(l);
 				prev_node = node_array_child.at(l - 1);
 				int edgearray_num = (*prev_node).hasEdge(this_node);
@@ -113,9 +126,9 @@ void copyNodes(vector<vector<Node *>> node_array, vector<vector<Node *>> &former
 				prev_node = node_array_child.at(l - 1);
 				next_node = node_array_child.at(l + 1);
 				(*this_node).addEdgeNode2(next_node, 0);
-				int edgearray_num = (*prev_node).hasEdge(this_node);
-				if (edgearray_num >= 0){
-					Edge *edge = (*prev_node).getEdge(edgearray_num);
+				int edgearray_no = (*prev_node).hasEdge(this_node);
+				if (edgearray_no >= 0){
+					Edge *edge = (*prev_node).getEdge(edgearray_no);
 					(*this_node).addEdge(edge);
 				}
 			}
