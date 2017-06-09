@@ -58,22 +58,36 @@ void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array, vector<vector
 
 }
 
-void removeNodes(vector<vector<Node *>> &arr){
-	for (vector<vector<Node *>>::iterator it = arr.begin(); it != arr.end(); it++){
-		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
-			if (*itra == NULL) continue;
-			delete (*itra);
-			*itra = NULL;
+void removeNodes(vector<vector<Node *>> &node_array){
+	for (int i = 0; i < node_array.size(); i++){
+		int end = node_array[i].size();
+		int second_x = node_array[i].at(2)->getNodeX();
+		int second_y = node_array[i].at(2)->getNodeY();
+		int end_x = node_array[i].at(node_array[i].size() - 1)->getNodeX();
+		int end_y = node_array[i].at(node_array[i].size() - 1)->getNodeY();
+		if (second_x == end_x && second_y == end_y) {
+			end = node_array[i].size() - 1;
+		}
+		for (int j = 0; j < end; j++){
+			Node *node = node_array[i].at(j);
+			delete (node);
 		}
 	}
 }
 
 void removeFormerNodes(){
-	for (vector<vector<Node *>>::iterator it = ::former_node_array.begin(); it != ::former_node_array.end(); it++){
-		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
-			if (*itra == NULL) continue;
-			delete (*itra);
-			*itra = NULL;
+	for (int i = 0; i < ::former_node_array.size(); i++){
+		int end = ::former_node_array[i].size();
+		int second_x = ::former_node_array[i].at(2)->getNodeX();
+		int second_y = ::former_node_array[i].at(2)->getNodeY();
+		int end_x = ::former_node_array[i].at(::former_node_array[i].size() - 1)->getNodeX();
+		int end_y = ::former_node_array[i].at(::former_node_array[i].size() - 1)->getNodeY();
+		if (second_x == end_x && second_y == end_y) {
+			end = ::former_node_array[i].size() - 1;
+		}
+		for (int j = 0; j < end; j++){
+			Node *node = ::former_node_array[i].at(j);
+			delete (node);
 		}
 	}
 	::former_node_array.clear();
@@ -161,9 +175,9 @@ void copyNodesInfo(cv::Mat &src_img, vector<vector<vector<Node *>>> &box_node, v
 	//former_node_array‚Ì“_‚ð“ü‚ê‚Ä‚¢‚­
 	for (int i = 0; i < former_node_array.size(); i++){
 		for (int j = 0; j < former_node_array[i].size(); j++){
-			Node *node = former_node_array[i].at(j);	
-			int x = node->getNodeX()/BOX_WIDTH;
-			int y = node->getNodeY()/BOX_HEIGHT;
+			Node *node = former_node_array[i].at(j);
+			int x = node->getNodeX() / BOX_WIDTH;
+			int y = node->getNodeY() / BOX_HEIGHT;
 			box_node[y].at(x).push_back(node);
 		}
 	}

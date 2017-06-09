@@ -137,21 +137,6 @@ public:
 						circle(resultImg, cv::Point(x, y), 6, cv::Scalar(b, g, r), -1, 8);
 					}
 				}
-				if (j == node_array[i].size() - 4){ //（終点-4）番目
-					Node *third_node = node_array[i].at(node_array[i].size() - 2);
-					Node *forth_node = node_array[i].at(node_array[i].size() - 1);
-					third.y = (*third_node).getNodeY();
-					third.x = (*third_node).getNodeX();
-					forth.y = (*forth_node).getNodeY();
-					forth.x = (*forth_node).getNodeX();
-					for (double t = 0; t <= 1.0; t += 0.005){
-						y = catmullRomFirstLast(third.y, forth.y, t);
-						x = catmullRomFirstLast(third.x, forth.x, t);
-						ctr.push_back(make_pair(y, x));
-						circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
-					}
-					break;
-				}
 				Node *first_node = node_array[i].at(j);
 				Node *second_node = node_array[i].at(j + 1);
 				Node *third_node = node_array[i].at(j + 2);
@@ -169,6 +154,21 @@ public:
 					x = catmullRom(first.x, second.x, third.x, forth.x, t);
 					ctr.push_back(make_pair(y, x));
 					circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
+				}
+				if (j == node_array[i].size() - 4){ //（終点-4）番目
+					Node *third_node = node_array[i].at(node_array[i].size() - 2);
+					Node *forth_node = node_array[i].at(node_array[i].size() - 1);
+					third.y = (*third_node).getNodeY();
+					third.x = (*third_node).getNodeX();
+					forth.y = (*forth_node).getNodeY();
+					forth.x = (*forth_node).getNodeX();
+					for (double t = 0; t <= 1.0; t += 0.005){
+						y = catmullRomFirstLast(third.y, forth.y, t);
+						x = catmullRomFirstLast(third.x, forth.x, t);
+						ctr.push_back(make_pair(y, x));
+						circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
+					}
+					break;
 				}
 			}
 		}
