@@ -108,7 +108,7 @@ public:
 				//node_arrayの最後をCからBに変更する
 				//NodeCはdeleteする
 				Node *node_a = node_array[i].at(node_array[i].size() - 2); //合流するノード
-				Node *node_b = node_array[i].at(2); //合流されるノード
+				Node *node_b = node_array[i].at(1); //合流されるノード
 				Node *node_c = node_array[i].at(node_array[i].size() - 1); //終点ノード
 				//node_a->addEdgeNode2(node_b, 0); //エッジのノードをCからBへ変更
 				delete node_c;
