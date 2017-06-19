@@ -163,12 +163,15 @@ public:
 
 				if (j == 0){
 					node_array_child.push_back(start_node);
+					start_node->setAngularNode();
 				}
 				if (!dotExist(src_img, mid, forward)){
 					node_array_child.push_back(forward_node);
+					forward_node->setAngularNode();
 				}
 				if (j == node_array[i].size() - 3){
 					node_array_child.push_back(goal_node);
+					goal_node->setAngularNode();
 					break;
 				}
 			}

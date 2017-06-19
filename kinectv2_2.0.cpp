@@ -27,10 +27,10 @@ vector<vector<vector<Node *>>> box_node;
 
 int test_count = 1;
 
-void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
+void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array, vector<vector<Node *>> ang_array){
 	catmull.init();
 	catmull.drawLine(result_img, node_array, HUE);
-	catmull.drawInline(result_img, HUE);
+	//catmull.drawInline(result_img, ang_array, HUE);
 }
 
 void doIm(vector<vector<Node *>> node_array, int rows, int cols){
@@ -193,7 +193,7 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
 	doGraph(src_img, node_array, ang_array);
-	doCatmull(result_img, node_array);
+	doCatmull(result_img, node_array, ang_array);
 
 	if (former_node_array.size()) {
 		removeFormerNodes();
