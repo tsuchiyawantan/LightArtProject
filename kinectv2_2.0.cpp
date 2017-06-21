@@ -30,7 +30,7 @@ int test_count = 1;
 void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array, vector<vector<Node *>> ang_array){
 	catmull.init();
 	catmull.drawLine(result_img, node_array, HUE);
-	//catmull.drawInline(result_img, ang_array, HUE);
+	catmull.drawInline(result_img, node_array, HUE);
 }
 
 void doIm(vector<vector<Node *>> node_array, int rows, int cols){

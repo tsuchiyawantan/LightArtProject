@@ -12,6 +12,7 @@ using namespace std;
 
 class CatmullSpline{
 private:
+	const double T_SIZE = 0.05;
 public:
 	vector<vector<pair<int, int>>> catmullLine;
 	cv::Mat resultImg;
@@ -53,23 +54,52 @@ public:
 		return false;
 	}
 
-	void drawInline(cv::Mat &srcImg, vector<vector<Node *>> &ang_array, vector<vector<Node *>> &node_array, int hue){
+	void drawInline(cv::Mat &srcImg, vector<vector<Node *>> &node_array, int hue){
 		NeonDesign design;
+		int limit = 0;
 		int b = 0, g = 0, r = 0;
-		int b_1 = 0, g_1 = 0, r_1 = 0;
-		design.rgb(hue, 255 - 100, 255, b, g, r);
-		for (int i = 0; i < catmullLine.size(); i++){
-			if (catmullLine[i].size() == 0) continue;
-			double size = 0.5;
-			for (int j = 0; j < catmullLine[i].size()-1; j++){
-				int start_y = catmullLine[i].at(j).first;
-				int start_x = catmullLine[i].at(j).second;	
-				int end_y = catmullLine[i].at(j+1).first;
-				int end_x = catmullLine[i].at(j+1).second;
-				
-				//if ()
-				cv::line(srcImg, cv::Point(start_x, start_y), cv::Point(end_x, end_y), cv::Scalar(b, g, r), .5, 4);
-				//circle(srcImg, cv::Point(x, y), .5, cv::Scalar(b, g, r), -1, 8);
+		for (int i = 0; i < node_array.size(); i++){
+			if (node_array[i].size() == 0) continue;
+			double size = 1;
+			int k = 0;
+			for (int j = 0; j < node_array[i].size()-1; j++){
+				Node *first_node = node_array[i].at(j);
+				Node *next_node = node_array[i].at(j+1);
+				if (j == 0 || j == node_array[i].size() - 2){ //始点
+					limit = k + (1.0/T_SIZE);
+					design.rgb(hue, 100, 255, b, g, r);
+					while (k < limit-1){ //20置き換え
+						int first_y = catmullLine[i].at(k).first;
+						int first_x = catmullLine[i].at(k).second;
+						int next_y = catmullLine[i].at(k + 1).first;
+						int next_x = catmullLine[i].at(k + 1).second;
+						cv::line(srcImg, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+						k++;
+					}
+				}
+				else{
+					if (first_node->isAngularNode() && next_node->isAngularNode()){
+						size = 2.0;
+						design.rgb(hue, 100, 255, b, g, r);
+					}
+					else if ((first_node->isAngularNode() && !next_node->isAngularNode()) || (!first_node->isAngularNode() && next_node->isAngularNode())){
+						design.rgb(hue, 100, 255, b, g, r);
+						size = 1.0;
+					}
+					else {
+						design.rgb(hue, 255 - 100, 255, b, g, r);
+						size = 0.5;
+					}
+					limit = k + (1.0 / T_SIZE);
+					while (k < limit-1){
+						int first_y = catmullLine[i].at(k).first;
+						int first_x = catmullLine[i].at(k).second;
+						int next_y = catmullLine[i].at(k + 1).first;
+						int next_x = catmullLine[i].at(k + 1).second;
+						cv::line(srcImg, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+						k++;
+					}
+				}
 			}
 		}
 	}
@@ -114,18 +144,13 @@ public:
 	void drawLine(cv::Mat &resultImg, vector<vector<Node *>> node_array, int hue){
 		NeonDesign design;
 		int b = 0, g = 0, r = 0;
-		int b_1 = 0, g_1 = 0, r_1 = 0;
-
 		vector<pair<int, int>> ctr;
-		vector<pair<int, int>> ctrtest; //試しにやってみる。うまく表現できてたら、違う方法を考える。このやり方だと、外側の線をぼやかしたりできない
 		cv::Point first;
 		cv::Point second;
 		cv::Point third;
 		cv::Point forth;
 
 		design.rgb(hue, 255, 255 - 100, b, g, r);
-		design.rgb(hue, 255 - 100, 255, b_1, g_1, r_1);
-
 		for (int i = 0; i < node_array.size(); i++){
 			ctr.clear();
 			for (int j = 0; j < node_array[i].size(); j++){
@@ -140,26 +165,12 @@ public:
 					first.x = (*first_node).getNodeX();
 					second.y = (*second_node).getNodeY();
 					second.x = (*second_node).getNodeX();
-					for (double t = 0; t <= 1.0; t += 0.05){
+					for (double t = 0; t <= 1.0; t += T_SIZE){
 						y = catmullRomFirstLast(first.y, second.y, t);
 						x = catmullRomFirstLast(first.x, second.x, t);
 						ctr.push_back(make_pair(y, x));
-						ctrtest.push_back(make_pair(y, x));
-						//circle(resultImg, cv::Point(x, y), 6, cv::Scalar(b, g, r), -1, 8);
-						//cv::line(resultImg, cv::Point(start_x, start_y), cv::Point(end_x, end_y), cv::Scalar(b, g, r), .5, 4);
+					//	circle(resultImg, cv::Point(x, y), 6, cv::Scalar(b, g, r), -1, 8);
 					}
-					if (ctrtest.size() == 0) continue;
-
-					for (int k = 0; k < ctrtest.size() - 1; k++){
-						int start_y = ctrtest.at(k).first;
-						int start_x = ctrtest.at(k).second;
-						int end_y = ctrtest.at(k + 1).first;
-						int end_x = ctrtest.at(k + 1).second;
-						//if ()
-						cv::line(resultImg, cv::Point(start_x, start_y), cv::Point(end_x, end_y), cv::Scalar(b_1, g_1, r_1), 2, 4);
-					}
-					ctrtest.clear();
-					ctrtest.shrink_to_fit();
 				}
 				Node *first_node = node_array[i].at(j);
 				Node *second_node = node_array[i].at(j + 1);
@@ -174,31 +185,12 @@ public:
 				forth.y = (*forth_node).getNodeY();
 				forth.x = (*forth_node).getNodeX();
 				double size = 1;
-				for (double t = 0; t <= 1.0; t += 0.05){
+				for (double t = 0; t <= 1.0; t += T_SIZE){
 					y = catmullRom(first.y, second.y, third.y, forth.y, t);
 					x = catmullRom(first.x, second.x, third.x, forth.x, t);
 					ctr.push_back(make_pair(y, x));
-					ctrtest.push_back(make_pair(y, x));
-					//circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
+				//	circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
 				}
-				if (third_node->isAngularNode() && forth_node->isAngularNode()){
-					size = 2;
-				}
-				else if (!third_node->isAngularNode() && !forth_node->isAngularNode()){
-					size = 0.5;
-				}
-				if (ctrtest.size() == 0) continue;
-
-				for (int k = 0; k < ctrtest.size() - 1; k++){
-					int start_y = ctrtest.at(k).first;
-					int start_x = ctrtest.at(k).second;
-					int end_y = ctrtest.at(k + 1).first;
-					int end_x = ctrtest.at(k + 1).second;
-					//if ()
-					cv::line(resultImg, cv::Point(start_x, start_y), cv::Point(end_x, end_y), cv::Scalar(b_1, g_1, r_1), size, 4);
-				}	
-				ctrtest.clear();
-				ctrtest.shrink_to_fit();
 				if (j == node_array[i].size() - 4){ //（終点-4）番目
 					Node *third_node = node_array[i].at(node_array[i].size() - 2);
 					Node *forth_node = node_array[i].at(node_array[i].size() - 1);
@@ -206,25 +198,12 @@ public:
 					third.x = (*third_node).getNodeX();
 					forth.y = (*forth_node).getNodeY();
 					forth.x = (*forth_node).getNodeX();
-					for (double t = 0; t <= 1.0; t += 0.05){
+					for (double t = 0; t <= 1.0; t += T_SIZE){
 						y = catmullRomFirstLast(third.y, forth.y, t);
 						x = catmullRomFirstLast(third.x, forth.x, t);
 						ctr.push_back(make_pair(y, x));
-						ctrtest.push_back(make_pair(y, x));
-						//circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
+					//	circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
 					}
-					if (ctrtest.size() == 0) continue;
-
-					for (int k = 0; k < ctrtest.size() - 1; k++){
-						int start_y = ctrtest.at(k).first;
-						int start_x = ctrtest.at(k).second;
-						int end_y = ctrtest.at(k + 1).first;
-						int end_x = ctrtest.at(k + 1).second;
-						//if ()
-						cv::line(resultImg, cv::Point(start_x, start_y), cv::Point(end_x, end_y), cv::Scalar(b_1, g_1, r_1), 2, 4);
-					}
-					ctrtest.clear();
-					ctrtest.shrink_to_fit();
 					break;
 				}
 			}
