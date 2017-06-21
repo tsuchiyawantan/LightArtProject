@@ -12,7 +12,7 @@
 #include "Node.h"
 #include "Graph.h"
 
-#define HUE 80
+#define HUE 183
 #define SPACESIZE 10
 #define EFFECT_FLAG 1
 #define BOX_WIDTH 20
@@ -30,6 +30,7 @@ int test_count = 1;
 void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array, vector<vector<Node *>> ang_array){
 	catmull.init();
 	catmull.drawLine(result_img, node_array, HUE);
+	//cv::GaussianBlur(result_img, result_img, cv::Size(19, 15), 0, 0);
 	catmull.drawInline(result_img, node_array, HUE);
 }
 

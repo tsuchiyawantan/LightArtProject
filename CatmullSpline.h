@@ -62,13 +62,13 @@ public:
 			if (node_array[i].size() == 0) continue;
 			double size = 1;
 			int k = 0;
-			for (int j = 0; j < node_array[i].size()-1; j++){
+			for (int j = 0; j < node_array[i].size() - 1; j++){
 				Node *first_node = node_array[i].at(j);
-				Node *next_node = node_array[i].at(j+1);
-				if (j == 0 || j == node_array[i].size() - 2){ //始点
-					limit = k + (1.0/T_SIZE);
+				Node *next_node = node_array[i].at(j + 1);
+				if (j == 0 || j == node_array[i].size() - 2){ //始点or終点
+					limit = k + (1.0 / T_SIZE);
 					design.rgb(hue, 100, 255, b, g, r);
-					while (k < limit-1){ //20置き換え
+					while (k < limit - 1){
 						int first_y = catmullLine[i].at(k).first;
 						int first_x = catmullLine[i].at(k).second;
 						int next_y = catmullLine[i].at(k + 1).first;
@@ -82,20 +82,21 @@ public:
 						size = 2.0;
 						design.rgb(hue, 100, 255, b, g, r);
 					}
-					else if ((first_node->isAngularNode() && !next_node->isAngularNode()) || (!first_node->isAngularNode() && next_node->isAngularNode())){
+					else if (!first_node->isAngularNode() && !next_node->isAngularNode()){
 						design.rgb(hue, 100, 255, b, g, r);
-						size = 1.0;
+						size = 0.5;
 					}
 					else {
 						design.rgb(hue, 255 - 100, 255, b, g, r);
-						size = 0.5;
+						size = 1.0;
 					}
 					limit = k + (1.0 / T_SIZE);
-					while (k < limit-1){
+					while (k < limit - 1){
 						int first_y = catmullLine[i].at(k).first;
 						int first_x = catmullLine[i].at(k).second;
 						int next_y = catmullLine[i].at(k + 1).first;
 						int next_x = catmullLine[i].at(k + 1).second;
+						//if (size!=0.5)
 						cv::line(srcImg, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
 						k++;
 					}
@@ -144,13 +145,14 @@ public:
 	void drawLine(cv::Mat &resultImg, vector<vector<Node *>> node_array, int hue){
 		NeonDesign design;
 		int b = 0, g = 0, r = 0;
+		double size = 5;
 		vector<pair<int, int>> ctr;
 		cv::Point first;
 		cv::Point second;
 		cv::Point third;
 		cv::Point forth;
-
 		design.rgb(hue, 255, 255 - 100, b, g, r);
+
 		for (int i = 0; i < node_array.size(); i++){
 			ctr.clear();
 			for (int j = 0; j < node_array[i].size(); j++){
@@ -158,7 +160,8 @@ public:
 				int y = (*node).getNodeY();
 				int x = (*node).getNodeX();
 				if (j >= node_array[i].size() || j + 1 >= node_array[i].size() || j + 2 >= node_array[i].size() || j + 3 >= node_array[i].size()) break;
-				if (j == 0){ //始点 
+				if (j == 0){ //始点
+					//design.rgb(hue, 255, 255 - 120, b, g, r);
 					Node *first_node = node_array[i].at(0);
 					Node *second_node = node_array[i].at(1);
 					first.y = (*first_node).getNodeY();
@@ -169,7 +172,7 @@ public:
 						y = catmullRomFirstLast(first.y, second.y, t);
 						x = catmullRomFirstLast(first.x, second.x, t);
 						ctr.push_back(make_pair(y, x));
-					//	circle(resultImg, cv::Point(x, y), 6, cv::Scalar(b, g, r), -1, 8);
+						//circle(resultImg, cv::Point(x, y), size, cv::Scalar(b, g, r), -1, 8);
 					}
 				}
 				Node *first_node = node_array[i].at(j);
@@ -184,14 +187,29 @@ public:
 				third.x = (*third_node).getNodeX();
 				forth.y = (*forth_node).getNodeY();
 				forth.x = (*forth_node).getNodeX();
-				double size = 1;
+
+				if (third_node->isAngularNode() && forth_node->isAngularNode()){
+					size = 6;
+					//design.rgb(hue, 255, 255-70, b, g, r);
+
+				}
+				else if (!third_node->isAngularNode() && !forth_node->isAngularNode()){
+					size = 5.5;
+					//design.rgb(hue, 255, 255 - 150, b, g, r);
+
+				}
+				else {
+					size = 5;
+					//design.rgb(hue, 255, 255 - 120, b, g, r);
+				}
 				for (double t = 0; t <= 1.0; t += T_SIZE){
 					y = catmullRom(first.y, second.y, third.y, forth.y, t);
 					x = catmullRom(first.x, second.x, third.x, forth.x, t);
 					ctr.push_back(make_pair(y, x));
-				//	circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
+					//circle(resultImg, cv::Point(x, y), size, cv::Scalar(b, g, r), -1, 8);
 				}
 				if (j == node_array[i].size() - 4){ //（終点-4）番目
+					size = 5.5;
 					Node *third_node = node_array[i].at(node_array[i].size() - 2);
 					Node *forth_node = node_array[i].at(node_array[i].size() - 1);
 					third.y = (*third_node).getNodeY();
@@ -202,7 +220,7 @@ public:
 						y = catmullRomFirstLast(third.y, forth.y, t);
 						x = catmullRomFirstLast(third.x, forth.x, t);
 						ctr.push_back(make_pair(y, x));
-					//	circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
+						//circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
 					}
 					break;
 				}
