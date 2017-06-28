@@ -27,7 +27,7 @@ vector<vector<vector<Node *>>> box_node;
 
 int test_count = 1;
 
-void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array, vector<vector<Node *>> ang_array){
+void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 	catmull.init();
 	catmull.drawLine(result_img, node_array, HUE);
 	//cv::GaussianBlur(result_img, result_img, cv::Size(19, 15), 0, 0);
@@ -48,13 +48,13 @@ void doIm(vector<vector<Node *>> node_array, int rows, int cols){
 	cv::imshow("corner", image);
 }
 
-void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array, vector<vector<Node *>> &ang_array){
+void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array){
 	graph.toGraph(src_img, dot.divide_contours, node_array);
 	//始点へのエッジを二番目へのエッジに変更する関数はここに入れる
 	graph.setEdgeToOtherNode(src_img, node_array);
-	graph.setCorner(src_img, node_array, ang_array);
+	graph.setCorner(src_img, node_array);
 	graph.setEdge(src_img, node_array);
-	graph.deformeNode(src_img, ang_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
+	graph.deformeNode(src_img, node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
 	//doIm(ang_array, src_img.rows, src_img.cols);
 
 }
@@ -126,8 +126,6 @@ void copyNodes(vector<vector<Node *>> node_array, vector<vector<Node *>> &former
 				(*this_node).addEdgeNode2(next_node, 0);
 			}
 			else if (l == node_array_child.size() - 1){ //終点
-				//エッジが3つある場合の分岐方法を考えなくてはならない
-				//エッジ3つ入ってない
 				this_node = node_array_child.at(l);
 				prev_node = node_array_child.at(l - 1);
 				int edgearray_num = (*prev_node).hasEdge(this_node);
@@ -186,15 +184,14 @@ void copyNodesInfo(cv::Mat &src_img, vector<vector<vector<Node *>>> &box_node, v
 
 void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	vector<vector<Node *>> node_array;
-	vector<vector<Node *>> ang_array;
 
 	dot.init();
 	dot.setWhiteDots(src_img);
 	dot.findStart(src_img);
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
-	doGraph(src_img, node_array, ang_array);
-	doCatmull(result_img, node_array, ang_array);
+	doGraph(src_img, node_array);
+	doCatmull(result_img, node_array);
 
 	if (former_node_array.size()) {
 		removeFormerNodes();
@@ -207,9 +204,7 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 		copyNodesInfo(src_img, ::box_node, former_node_array);
 		removeNodes(node_array);
 		node_array.clear();
-		ang_array.clear();
 		node_array.shrink_to_fit();
-		ang_array.shrink_to_fit();
 	}
 }
 

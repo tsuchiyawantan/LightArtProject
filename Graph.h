@@ -136,8 +136,7 @@ public:
 	}
 
 	//“_—ñ‚ÌŠp‚Å‚ ‚ë‚¤“_‚¾‚¯‚ðset
-	void setCorner(cv::Mat& src_img, vector<vector<Node *>> &node_array, vector<vector<Node *>> &newnode_array){
-		vector<Node *> node_array_child;
+	void setCorner(cv::Mat& src_img, vector<vector<Node *>> &node_array){
 		cv::Point start;
 		cv::Point goal;
 		cv::Point mid;
@@ -147,8 +146,7 @@ public:
 		Node *forward_node;
 
 		for (int i = 0; i < node_array.size(); i++){
-			node_array_child.clear();
-			for (int j = 0; j < node_array[i].size(); j++){
+			for (int j = 0; j < node_array[i].size()-2; j++){
 				start_node = node_array[i].at(j);
 				goal_node = node_array[i].at(j + 2);
 				forward_node = node_array[i].at(j + 1);
@@ -161,21 +159,10 @@ public:
 				mid.y = (start.y + goal.y) / 2;
 				mid.x = (start.x + goal.x) / 2;
 
-				if (j == 0){
-					node_array_child.push_back(start_node);
-					start_node->setAngularNode();
-				}
 				if (!dotExist(src_img, mid, forward)){
-					node_array_child.push_back(forward_node);
 					forward_node->setAngularNode();
 				}
-				if (j == node_array[i].size() - 3){
-					node_array_child.push_back(goal_node);
-					goal_node->setAngularNode();
-					break;
-				}
 			}
-			newnode_array.push_back(node_array_child);
 		}
 	}
 
@@ -198,26 +185,18 @@ public:
 	}
 
 	void deformeNode(cv::Mat src_img, vector<vector<Node *>> &node_array, vector<vector<vector<Node *>>> box_node, int bw, int bh){
-		if (box_node.size() == 0){
+		if (box_node.size() != 0){
 			for (int i = 0; i < node_array.size(); i++){
-				for (int j = 0; j < node_array[i].size(); j++){
+				for (int j = 0; j < node_array[i].size(); j += 1){
 					Node *node = node_array[i].at(j);
-					int x = node->getNodeX();
-					int y = node->getNodeY();
-					(*node).circleNode(x, y);
-				}
-			}
-		}
-		else {
-			for (int i = 0; i < node_array.size(); i++){
-				for (int j = 0; j < node_array[i].size(); j += 2){
-					Node *node = node_array[i].at(j);
-					int x = node_array[i].at(j)->getNodeX();
-					int y = node_array[i].at(j)->getNodeY();
-					Node *near_node = findNearNode(node, box_node[y / bh].at(x / bw));
+					if (node->isAngularNode()){
+						int x = node_array[i].at(j)->getNodeX();
+						int y = node_array[i].at(j)->getNodeY();
+						Node *near_node = findNearNode(node, box_node[y / bh].at(x / bw));
 
-					if (near_node == NULL) { node->circleNode(x, y); }
-					else { node->circleNode(near_node->getNodeX(), near_node->getNodeY()); }
+						if (near_node == NULL) { node->circleNode(x, y); }
+						else { node->circleNode(near_node->getNodeX(), near_node->getNodeY()); }
+					}
 				}
 			}
 		}

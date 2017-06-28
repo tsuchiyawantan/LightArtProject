@@ -161,7 +161,7 @@ public:
 				int x = (*node).getNodeX();
 				if (j >= node_array[i].size() || j + 1 >= node_array[i].size() || j + 2 >= node_array[i].size() || j + 3 >= node_array[i].size()) break;
 				if (j == 0){ //始点
-					//design.rgb(hue, 255, 255 - 120, b, g, r);
+					design.rgb(hue, 255, 255 - 120, b, g, r);
 					Node *first_node = node_array[i].at(0);
 					Node *second_node = node_array[i].at(1);
 					first.y = (*first_node).getNodeY();
@@ -172,7 +172,7 @@ public:
 						y = catmullRomFirstLast(first.y, second.y, t);
 						x = catmullRomFirstLast(first.x, second.x, t);
 						ctr.push_back(make_pair(y, x));
-						//circle(resultImg, cv::Point(x, y), size, cv::Scalar(b, g, r), -1, 8);
+						circle(resultImg, cv::Point(x, y), size, cv::Scalar(b, g, r), -1, 8);
 					}
 				}
 				Node *first_node = node_array[i].at(j);
@@ -190,23 +190,23 @@ public:
 
 				if (third_node->isAngularNode() && forth_node->isAngularNode()){
 					size = 6;
-					//design.rgb(hue, 255, 255-70, b, g, r);
+					design.rgb(hue, 255, 255-70, b, g, r);
 
 				}
 				else if (!third_node->isAngularNode() && !forth_node->isAngularNode()){
 					size = 5.5;
-					//design.rgb(hue, 255, 255 - 150, b, g, r);
+					design.rgb(hue, 255, 255 - 150, b, g, r);
 
 				}
 				else {
 					size = 5;
-					//design.rgb(hue, 255, 255 - 120, b, g, r);
+					design.rgb(hue, 255, 255 - 120, b, g, r);
 				}
 				for (double t = 0; t <= 1.0; t += T_SIZE){
 					y = catmullRom(first.y, second.y, third.y, forth.y, t);
 					x = catmullRom(first.x, second.x, third.x, forth.x, t);
 					ctr.push_back(make_pair(y, x));
-					//circle(resultImg, cv::Point(x, y), size, cv::Scalar(b, g, r), -1, 8);
+					circle(resultImg, cv::Point(x, y), size, cv::Scalar(b, g, r), -1, 8);
 				}
 				if (j == node_array[i].size() - 4){ //（終点-4）番目
 					size = 5.5;
@@ -220,7 +220,7 @@ public:
 						y = catmullRomFirstLast(third.y, forth.y, t);
 						x = catmullRomFirstLast(third.x, forth.x, t);
 						ctr.push_back(make_pair(y, x));
-						//circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
+						circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
 					}
 					break;
 				}
