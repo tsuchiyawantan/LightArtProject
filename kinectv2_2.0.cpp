@@ -12,7 +12,7 @@
 #include "Node.h"
 #include "Graph.h"
 
-#define HUE 80
+#define HUE 183
 #define SPACESIZE 10
 #define EFFECT_FLAG 1
 #define BOX_WIDTH 20
@@ -30,7 +30,8 @@ int test_count = 1;
 void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 	catmull.init();
 	catmull.drawLine(result_img, node_array, HUE);
-	catmull.drawInline(result_img, HUE);
+	//cv::GaussianBlur(result_img, result_img, cv::Size(19, 15), 0, 0);
+	catmull.drawInline(result_img, node_array, HUE);
 }
 
 void doIm(vector<vector<Node *>> node_array, int rows, int cols){
@@ -47,26 +48,47 @@ void doIm(vector<vector<Node *>> node_array, int rows, int cols){
 	cv::imshow("corner", image);
 }
 
-void doGraph(cv::Mat &src_img, vector<vector<Node *>> &prenode_array, vector<vector<Node *>> &node_array){
-	graph.toGraph(src_img, dot.divide_contours, prenode_array);
-	graph.setCorner(src_img, prenode_array, node_array);
+void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array){
+	graph.toGraph(src_img, dot.divide_contours, node_array);
+	//始点へのエッジを二番目へのエッジに変更する関数はここに入れる
+	graph.setEdgeToOtherNode(src_img, node_array);
+	graph.setCorner(src_img, node_array);
 	graph.setEdge(src_img, node_array);
-	//doIm(node_array, src_img.rows, src_img.cols);
 	graph.deformeNode(src_img, node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
+	//doIm(ang_array, src_img.rows, src_img.cols);
+
 }
 
-void removeNodes(vector<vector<Node *>> &arr){
-	for (vector<vector<Node *>>::iterator it = arr.begin(); it != arr.end(); it++){
-		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
-			delete (*itra);
+void removeNodes(vector<vector<Node *>> &node_array){
+	for (int i = 0; i < node_array.size(); i++){
+		int end = node_array[i].size();
+		int second_x = node_array[i].at(1)->getNodeX();
+		int second_y = node_array[i].at(1)->getNodeY();
+		int end_x = node_array[i].at(node_array[i].size() - 1)->getNodeX();
+		int end_y = node_array[i].at(node_array[i].size() - 1)->getNodeY();
+		if (second_x == end_x && second_y == end_y) {
+			end = node_array[i].size() - 1;
+		}
+		for (int j = 0; j < end; j++){
+			Node *node = node_array[i].at(j);
+			delete (node);
 		}
 	}
 }
 
 void removeFormerNodes(){
-	for (vector<vector<Node *>>::iterator it = ::former_node_array.begin(); it != ::former_node_array.end(); it++){
-		for (vector<Node *>::iterator itra = it->begin(); itra != it->end(); itra++){
-			delete (*itra);
+	for (int i = 0; i < ::former_node_array.size(); i++){
+		int end = ::former_node_array[i].size();
+		int second_x = ::former_node_array[i].at(1)->getNodeX();
+		int second_y = ::former_node_array[i].at(1)->getNodeY();
+		int end_x = ::former_node_array[i].at(::former_node_array[i].size() - 1)->getNodeX();
+		int end_y = ::former_node_array[i].at(::former_node_array[i].size() - 1)->getNodeY();
+		if (second_x == end_x && second_y == end_y) {
+			end = ::former_node_array[i].size() - 1;
+		}
+		for (int j = 0; j < end; j++){
+			Node *node = ::former_node_array[i].at(j);
+			delete (node);
 		}
 	}
 	::former_node_array.clear();
@@ -78,6 +100,17 @@ void copyNodes(vector<vector<Node *>> node_array, vector<vector<Node *>> &former
 		vector<Node *> node_array_child;
 		for (int j = 0; j < node_array[i].size(); j++){
 			Node node = (*node_array[i].at(j));
+			if (j == node_array[i].size() - 1){
+				int second_x = node_array[i].at(1)->getNodeX();
+				int second_y = node_array[i].at(1)->getNodeY();
+				int end_x = node_array[i].at(node_array[i].size() - 1)->getNodeX();
+				int end_y = node_array[i].at(node_array[i].size() - 1)->getNodeY();
+				if (second_x == end_x && second_y == end_y) {
+					Node *node_b = node_array_child.at(1); //合流されるノード
+					node_array_child.push_back(node_b);
+					break;
+				}
+			}
 			node_array_child.push_back(new Node(node));
 		}
 
@@ -106,9 +139,9 @@ void copyNodes(vector<vector<Node *>> node_array, vector<vector<Node *>> &former
 				prev_node = node_array_child.at(l - 1);
 				next_node = node_array_child.at(l + 1);
 				(*this_node).addEdgeNode2(next_node, 0);
-				int edgearray_num = (*prev_node).hasEdge(this_node);
-				if (edgearray_num >= 0){
-					Edge *edge = (*prev_node).getEdge(edgearray_num);
+				int edgearray_no = (*prev_node).hasEdge(this_node);
+				if (edgearray_no >= 0){
+					Edge *edge = (*prev_node).getEdge(edgearray_no);
 					(*this_node).addEdge(edge);
 				}
 			}
@@ -137,20 +170,19 @@ void mkBoxNode(cv::Mat src_img, vector<vector<vector<Node *>>> &box_node){
 	}
 }
 
-void copyNodesInfo(cv::Mat &src_img, vector<vector<Node *>> node_array, vector<vector<vector<Node *>>> &box_node, vector<vector<Node *>> former_node_array){
+void copyNodesInfo(cv::Mat &src_img, vector<vector<vector<Node *>>> &box_node, vector<vector<Node *>> former_node_array){
 	//former_node_arrayの点を入れていく
 	for (int i = 0; i < former_node_array.size(); i++){
 		for (int j = 0; j < former_node_array[i].size(); j++){
-			Node *node = former_node_array[i].at(j);	
-			int x = node->getNodeX()/BOX_WIDTH;
-			int y = node->getNodeY()/BOX_HEIGHT;
+			Node *node = former_node_array[i].at(j);
+			int x = node->getNodeX() / BOX_WIDTH;
+			int y = node->getNodeY() / BOX_HEIGHT;
 			box_node[y].at(x).push_back(node);
 		}
 	}
 }
 
 void doDot(cv::Mat &src_img, cv::Mat &result_img){
-	vector<vector<Node *>> prenode_array;
 	vector<vector<Node *>> node_array;
 
 	dot.init();
@@ -158,7 +190,7 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	dot.findStart(src_img);
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
-	doGraph(src_img, node_array, prenode_array);
+	doGraph(src_img, node_array);
 	doCatmull(result_img, node_array);
 
 	if (former_node_array.size()) {
@@ -166,15 +198,13 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	}
 
 	//メモリ解放
-	if (prenode_array.size() > 0) {
+	if (node_array.size() > 0) {
 		mkBoxNode(src_img, ::box_node);
 		copyNodes(node_array, former_node_array);
-		copyNodesInfo(src_img, node_array, ::box_node, former_node_array);
-		removeNodes(prenode_array);
-		prenode_array.clear();
+		copyNodesInfo(src_img, ::box_node, former_node_array);
+		removeNodes(node_array);
 		node_array.clear();
 		node_array.shrink_to_fit();
-		prenode_array.shrink_to_fit();
 	}
 }
 

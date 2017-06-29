@@ -11,6 +11,7 @@ private:
 	//0番目は右隣のエッジ、1番目は左隣へのエッジ
 	vector<Edge *> edge_array;
 	bool has_right_edge = true;
+	bool angular = false;
 public:
 
 	Node(cv::Point mynode){
@@ -129,6 +130,14 @@ public:
 
 	void setRightEdge(bool flag){
 		has_right_edge = flag;
+	}
+	
+	void setAngularNode(bool flag = true){
+		angular = flag;
+	}
+
+	bool isAngularNode(){
+		return angular;
 	}
 
 };
