@@ -8,6 +8,8 @@
 
 using namespace std;
 
+#define AFTER_FRAME 3
+
 class Effect{
 private:
 public:
@@ -40,5 +42,19 @@ public:
 				src[j][2] = src[j][2] + filter;
 			}
 		}
+	}
+
+	void addAfterImg(cv::Mat &src_img, vector<cv::Mat> &afterimg_array){
+		cv::Mat src_multi_img = src_img.clone();
+
+		if (afterimg_array.size() != 0){
+			if (afterimg_array.size() > AFTER_FRAME) afterimg_array.erase(afterimg_array.begin());
+			//afterimg_array”z—ñ‚É1/X‚ð‘«‚µŽZ‚µ‚Ä‚¢‚­
+			for (int i = 0; i < afterimg_array.size(); i++){
+				applyFilteringAdd(afterimg_array.at(i), 1.0 / AFTER_FRAME);
+			}
+		}
+		applyFilteringMulti(src_img, src_multi_img, 1.0 / AFTER_FRAME);
+		afterimg_array.push_back(src_multi_img);
 	}
 };
