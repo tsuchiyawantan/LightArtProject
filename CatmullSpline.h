@@ -157,7 +157,7 @@ public:
 		cv::Point second;
 		cv::Point third;
 		cv::Point forth;
-		design.rgb(hue, 255-130, 255 - 100, b, g, r);
+		design.rgb(hue, 255-130, 70, b, g, r);
 
 		for (int i = 0; i < node_array.size(); i++){
 			ctr.clear();
@@ -192,33 +192,6 @@ public:
 				third.x = (*third_node).getNodeX();
 				forth.y = (*forth_node).getNodeY();
 				forth.x = (*forth_node).getNodeX();
-
-/*				if (third_node->isAngularNode() && forth_node->isAngularNode()){
-					size = 6;
-					design.rgb(hue, 255 - 130, 255 - 100, b, g, r);
-
-				}
-				else if (!third_node->isAngularNode() && !forth_node->isAngularNode()){
-					size = 5.5;
-					design.rgb(hue, 255 - 130, 255 - 150, b, g, r);
-
-				}
-				else {
-					size = 5;
-					design.rgb(hue, 255 - 130, 255 - 120, b, g, r);
-				}*/
-
-				if (third_node->isAngularNode()){
-					if (size < 7.0)
-						size += 0.5;
-					design.rgb(hue, 255 - 130, 255 - 100, b, g, r);
-				}
-				else{
-					if (size > 5)
-						size -= 0.5;
-					design.rgb(hue, 255 - 130, 255 - 120, b, g, r);
-
-				}
 
 				for (double t = 0; t <= 1.0; t += T_SIZE){
 					y = catmullRom(first.y, second.y, third.y, forth.y, t);
