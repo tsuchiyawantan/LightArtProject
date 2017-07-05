@@ -25,7 +25,7 @@ Effect effect;
 vector<vector<Node *>> former_node_array;
 vector<vector<vector<Node *>>> box_node;
 
-int test_count = 1;
+int test_count = 0;
 
 void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 	catmull.init();
@@ -41,11 +41,12 @@ void doIm(vector<vector<Node *>> node_array, int rows, int cols){
 			Node *node = node_array[i].at(j);
 			int y = (*node).getNodeY();
 			int x = (*node).getNodeX();
-			circle(image, cv::Point(x, y), 5, cv::Scalar(0, 255, 0), -1, 8);
+			if (node->isAngularNode())
+				circle(image, cv::Point(x, y), 5, cv::Scalar(0, 255, 0), -1, 8);
 		}
 	}
-	//cv::imwrite("image/image" + to_string(test_count++) + ".png", image);
-	cv::imshow("corner", image);
+	//cv::imwrite("cornerimage/image" + to_string(test_count++) + ".png", image);
+	//cv::imshow("corner", image);
 }
 
 void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array){
@@ -55,7 +56,7 @@ void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array){
 	graph.setCorner(src_img, node_array);
 	graph.setEdge(src_img, node_array);
 	graph.deformeNode(src_img, node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
-	//doIm(ang_array, src_img.rows, src_img.cols);
+	doIm(node_array, src_img.rows, src_img.cols);
 
 }
 
@@ -248,10 +249,12 @@ void main() {
 			else
 				/* 残像なしversion */
 				doDot(depth.contourImage, result_img);
+		//	cv::imwrite("resultimage/image" + to_string(count) + ".png", result_img);
 
 			//フレームレート落として表示
 			if (count % 2 == 0){
 				cv::imshow("Result", result_img);
+
 			}
 			count++;
 			auto key = cv::waitKey(20);

@@ -16,6 +16,7 @@ private:
 public:
 	vector<vector<pair<int, int>>> catmullLine;
 	cv::Mat resultImg;
+//	int test_count = 0;
 
 	CatmullSpline(){}
 	~CatmullSpline(){}
@@ -56,11 +57,13 @@ public:
 
 	void drawInline(cv::Mat &srcImg, vector<vector<Node *>> &node_array, int hue){
 		NeonDesign design;
+		cv::Mat wow = cv::Mat(srcImg.rows, srcImg.cols, CV_8UC3, cv::Scalar(0, 0, 0));
+
 		int limit = 0;
 		int b = 0, g = 0, r = 0;
 		for (int i = 0; i < node_array.size(); i++){
 			if (node_array[i].size() == 0) continue;
-			double size = 1;
+			double size = 0.5;
 			int k = 0;
 			for (int j = 0; j < node_array[i].size() - 1; j++){
 				Node *first_node = node_array[i].at(j);
@@ -74,35 +77,38 @@ public:
 						int next_y = catmullLine[i].at(k + 1).first;
 						int next_x = catmullLine[i].at(k + 1).second;
 						cv::line(srcImg, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+						//cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
 						k++;
 					}
 				}
 				else{
-					if (first_node->isAngularNode() && next_node->isAngularNode()){
-						size = 2.0;
+					if (next_node->isAngularNode()){
+						if (size < 4.0)
+							size += 0.5;
 						design.rgb(hue, 100, 255, b, g, r);
 					}
-					else if (!first_node->isAngularNode() && !next_node->isAngularNode()){
-						design.rgb(hue, 100, 255, b, g, r);
-						size = 0.5;
-					}
-					else {
+					else{
+						if (size > 0.5)
+							size -= 0.5;
 						design.rgb(hue, 255 - 100, 255, b, g, r);
-						size = 1.0;
+
 					}
+
 					limit = k + (1.0 / T_SIZE);
 					while (k < limit - 1){
 						int first_y = catmullLine[i].at(k).first;
 						int first_x = catmullLine[i].at(k).second;
 						int next_y = catmullLine[i].at(k + 1).first;
 						int next_x = catmullLine[i].at(k + 1).second;
-						//if (size!=0.5)
 						cv::line(srcImg, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+						//cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
 						k++;
 					}
 				}
 			}
 		}
+		//cv::imwrite("inlineimage/image" + to_string(test_count++) + ".png", wow);
+		//cv::imshow("inline", wow);
 	}
 
 	void doGaussian(vector<pair<int, int>> &catCtr, cv::Mat &srcImg){
@@ -161,7 +167,6 @@ public:
 				int x = (*node).getNodeX();
 				if (j >= node_array[i].size() || j + 1 >= node_array[i].size() || j + 2 >= node_array[i].size() || j + 3 >= node_array[i].size()) break;
 				if (j == 0){ //始点
-					//design.rgb(hue, 255, 255 - 120, b, g, r);
 					Node *first_node = node_array[i].at(0);
 					Node *second_node = node_array[i].at(1);
 					first.y = (*first_node).getNodeY();
@@ -188,9 +193,9 @@ public:
 				forth.y = (*forth_node).getNodeY();
 				forth.x = (*forth_node).getNodeX();
 
-				if (third_node->isAngularNode() && forth_node->isAngularNode()){
+/*				if (third_node->isAngularNode() && forth_node->isAngularNode()){
 					size = 6;
-					design.rgb(hue, 255 - 130, 255 - 70, b, g, r);
+					design.rgb(hue, 255 - 130, 255 - 100, b, g, r);
 
 				}
 				else if (!third_node->isAngularNode() && !forth_node->isAngularNode()){
@@ -201,7 +206,20 @@ public:
 				else {
 					size = 5;
 					design.rgb(hue, 255 - 130, 255 - 120, b, g, r);
+				}*/
+
+				if (third_node->isAngularNode()){
+					if (size < 7.0)
+						size += 0.5;
+					design.rgb(hue, 255 - 130, 255 - 100, b, g, r);
 				}
+				else{
+					if (size > 5)
+						size -= 0.5;
+					design.rgb(hue, 255 - 130, 255 - 120, b, g, r);
+
+				}
+
 				for (double t = 0; t <= 1.0; t += T_SIZE){
 					y = catmullRom(first.y, second.y, third.y, forth.y, t);
 					x = catmullRom(first.x, second.x, third.x, forth.x, t);
@@ -209,7 +227,7 @@ public:
 					circle(resultImg, cv::Point(x, y), size, cv::Scalar(b, g, r), -1, 8);
 				}
 				if (j == node_array[i].size() - 4){ //（終点-4）番目
-					size = 5.5;
+					//size = 5.5;
 					Node *third_node = node_array[i].at(node_array[i].size() - 2);
 					Node *forth_node = node_array[i].at(node_array[i].size() - 1);
 					third.y = (*third_node).getNodeY();
