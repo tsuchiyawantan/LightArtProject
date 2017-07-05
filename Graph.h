@@ -23,40 +23,6 @@ public:
 				node = divcon[i].at(j);
 				node_array_child.push_back(new Node(node));
 			}
-
-			//ノードの連結操作
-			/*
-			Node *this_node;
-			Node *prev_node;
-			Node *next_node;
-
-			for (int l = 0; l < node_array_child.size(); l++){
-			if (l == 0){ //始点
-			this_node = node_array_child.at(l);
-			next_node = node_array_child.at(l + 1);
-			(*this_node).addEdgeNode2(next_node, 0);
-			}
-			else if (l == node_array_child.size() - 1){ //終点
-			this_node = node_array_child.at(l);
-			prev_node = node_array_child.at(l - 1);
-			int edgearray_num = (*prev_node).hasEdge(this_node);
-			if (edgearray_num >= 0){
-			Edge *edge = (*prev_node).getEdge(edgearray_num);
-			(*this_node).addEdge(edge);
-			}
-			}
-			else {
-			this_node = node_array_child.at(l);
-			prev_node = node_array_child.at(l - 1);
-			next_node = node_array_child.at(l + 1);
-			(*this_node).addEdgeNode2(next_node, 0);
-			int edgearray_num = (*prev_node).hasEdge(this_node);
-			if (edgearray_num >= 0){
-			Edge *edge = (*prev_node).getEdge(edgearray_num);
-			(*this_node).addEdge(edge);
-			}
-			}
-			}*/
 			node_array.push_back(node_array_child);
 		}
 	}
@@ -133,34 +99,35 @@ public:
 			if (dy == forward.y && dx == forward.x) return true;
 		}
 		return false;
-	}
-
+	}	
+	
 	//点列の角であろう点だけをset
 	void setCorner(cv::Mat& src_img, vector<vector<Node *>> &node_array){
 		cv::Point start;
 		cv::Point goal;
 		cv::Point mid;
-		cv::Point forward;
+		cv::Point next;
 		Node *start_node;
 		Node *goal_node;
-		Node *forward_node;
+		Node *next_node;
 
 		for (int i = 0; i < node_array.size(); i++){
 			for (int j = 0; j < node_array[i].size()-2; j++){
 				start_node = node_array[i].at(j);
 				goal_node = node_array[i].at(j + 2);
-				forward_node = node_array[i].at(j + 1);
+				next_node = node_array[i].at(j + 1);
 				start.y = (*start_node).getNodeY();
 				start.x = (*start_node).getNodeX();
 				goal.y = (*goal_node).getNodeY();
 				goal.x = (*goal_node).getNodeX();
-				forward.y = (*forward_node).getNodeY();
-				forward.x = (*forward_node).getNodeX();
+				next.y = (*next_node).getNodeY();
+				next.x = (*next_node).getNodeX();
 				mid.y = (start.y + goal.y) / 2;
 				mid.x = (start.x + goal.x) / 2;
+				double n = sqrt((next.x - mid.x)*(next.x - mid.x) + (next.y - mid.y)*(next.y - mid.y));
 
-				if (!dotExist(src_img, mid, forward)){
-					forward_node->setAngularNode();
+				if (n>1.5){
+					next_node->setAngularNode();
 				}
 			}
 		}
