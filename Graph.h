@@ -70,16 +70,18 @@ public:
 			int start_y = node_array[i].at(0)->getNodeY();
 			int end_x = node_array[i].at(node_array[i].size() - 1)->getNodeX();
 			int end_y = node_array[i].at(node_array[i].size() - 1)->getNodeY();
-			if (start_x == end_x && start_y == end_y) {
-				//node_arrayの最後をCからBに変更する
-				//NodeCはdeleteする
-				Node *node_a = node_array[i].at(node_array[i].size() - 2); //合流するノード
-				Node *node_b = node_array[i].at(1); //合流されるノード
-				Node *node_c = node_array[i].at(node_array[i].size() - 1); //終点ノード
-				//node_a->addEdgeNode2(node_b, 0); //エッジのノードをCからBへ変更
-				delete node_c;
-				node_array[i].pop_back();
-				node_array[i].push_back(node_b);
+			if (node_array[i].size() > 2) {
+				if (start_x == end_x && start_y == end_y) {
+					//node_arrayの最後をCからBに変更する
+					//NodeCはdeleteする
+					Node *node_a = node_array[i].at(node_array[i].size() - 2); //合流するノード
+					Node *node_b = node_array[i].at(1); //合流されるノード
+					Node *node_c = node_array[i].at(node_array[i].size() - 1); //終点ノード
+					//node_a->addEdgeNode2(node_b, 0); //エッジのノードをCからBへ変更
+					delete node_c;
+					node_array[i].pop_back();
+					node_array[i].push_back(node_b);
+				}
 			}
 		}
 	}
@@ -112,6 +114,7 @@ public:
 		Node *next_node;
 
 		for (int i = 0; i < node_array.size(); i++){
+			if (node_array[i].size() < 3) continue;
 			for (int j = 0; j < node_array[i].size()-2; j++){
 				start_node = node_array[i].at(j);
 				goal_node = node_array[i].at(j + 2);

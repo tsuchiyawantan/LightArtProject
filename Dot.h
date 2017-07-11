@@ -169,7 +169,7 @@ public:
 				}
 				//‚±‚±‚Å‚àŒ©‚éB‘¼‚Ì“_‚ª‚¢‚ê‚Îctr‚ÌÅŒã‚É“ü‚ê‚é
 				//checkUsed8(srcImg, ctr, dir, y, x);
-				if (ctr.size() > 40)
+				if (ctr.size() > 30)
 					contours.push_back(ctr);
 				ctr.clear();
 				dir.clear();

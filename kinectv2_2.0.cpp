@@ -12,7 +12,7 @@
 #include "Node.h"
 #include "Graph.h"
 
-#define HUE 183
+#define HUE 0
 #define SPACESIZE 10
 #define EFFECT_FLAG 1
 #define BOX_WIDTH 20
@@ -56,19 +56,21 @@ void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array){
 	graph.setCorner(src_img, node_array);
 	graph.setEdge(src_img, node_array);
 	graph.deformeNode(src_img, node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
-	doIm(node_array, src_img.rows, src_img.cols);
+	//doIm(node_array, src_img.rows, src_img.cols);
 
 }
 
 void removeNodes(vector<vector<Node *>> &node_array){
 	for (int i = 0; i < node_array.size(); i++){
 		int end = node_array[i].size();
-		int second_x = node_array[i].at(1)->getNodeX();
-		int second_y = node_array[i].at(1)->getNodeY();
-		int end_x = node_array[i].at(node_array[i].size() - 1)->getNodeX();
-		int end_y = node_array[i].at(node_array[i].size() - 1)->getNodeY();
-		if (second_x == end_x && second_y == end_y) {
-			end = node_array[i].size() - 1;
+		if (node_array[i].size() > 2){
+			int second_x = node_array[i].at(1)->getNodeX();
+			int second_y = node_array[i].at(1)->getNodeY();
+			int end_x = node_array[i].at(node_array[i].size() - 1)->getNodeX();
+			int end_y = node_array[i].at(node_array[i].size() - 1)->getNodeY();
+			if (second_x == end_x && second_y == end_y) {
+				end = node_array[i].size() - 1;
+			}
 		}
 		for (int j = 0; j < end; j++){
 			Node *node = node_array[i].at(j);
@@ -80,12 +82,14 @@ void removeNodes(vector<vector<Node *>> &node_array){
 void removeFormerNodes(){
 	for (int i = 0; i < ::former_node_array.size(); i++){
 		int end = ::former_node_array[i].size();
-		int second_x = ::former_node_array[i].at(1)->getNodeX();
-		int second_y = ::former_node_array[i].at(1)->getNodeY();
-		int end_x = ::former_node_array[i].at(::former_node_array[i].size() - 1)->getNodeX();
-		int end_y = ::former_node_array[i].at(::former_node_array[i].size() - 1)->getNodeY();
-		if (second_x == end_x && second_y == end_y) {
-			end = ::former_node_array[i].size() - 1;
+		if (::former_node_array[i].size() > 2){
+			int second_x = ::former_node_array[i].at(1)->getNodeX();
+			int second_y = ::former_node_array[i].at(1)->getNodeY();
+			int end_x = ::former_node_array[i].at(::former_node_array[i].size() - 1)->getNodeX();
+			int end_y = ::former_node_array[i].at(::former_node_array[i].size() - 1)->getNodeY();
+			if (second_x == end_x && second_y == end_y) {
+				end = ::former_node_array[i].size() - 1;
+			}
 		}
 		for (int j = 0; j < end; j++){
 			Node *node = ::former_node_array[i].at(j);
@@ -101,7 +105,7 @@ void copyNodes(vector<vector<Node *>> node_array, vector<vector<Node *>> &former
 		vector<Node *> node_array_child;
 		for (int j = 0; j < node_array[i].size(); j++){
 			Node node = (*node_array[i].at(j));
-			if (j == node_array[i].size() - 1){
+			if (j == node_array[i].size() - 1 && node_array[i].size() > 2){
 				int second_x = node_array[i].at(1)->getNodeX();
 				int second_y = node_array[i].at(1)->getNodeY();
 				int end_x = node_array[i].at(node_array[i].size() - 1)->getNodeX();
@@ -238,10 +242,13 @@ void main() {
 		cv::Mat result_img;
 		vector<cv::Mat> afterimg_array;
 		int count = 0;
-		while (1) {
+
+		while (1) {	
+			depth.setRGB(rgb_img);
 			depth.setBodyDepth();
 			depth.setNormalizeDepth(depth.bodyDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
+			resize(rgb_img, rgb_img, cv::Size(), 0.2, 0.2);
 			result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
 				doAfterImg(result_img, depth.contourImage, afterimg_array);
@@ -249,13 +256,15 @@ void main() {
 			else
 				/* 残像なしversion */
 				doDot(depth.contourImage, result_img);
-		//	cv::imwrite("resultimage/image" + to_string(count) + ".png", result_img);
+			cv::imwrite("resultimage/image" + to_string(count) + ".png", result_img);
 
 			//フレームレート落として表示
 			if (count % 2 == 0){
-				cv::imshow("Result", result_img);
+				cv::imshow("RESULT IMAGE", result_img);
 
 			}
+			cv::imshow("RGB IMAGE", rgb_img);
+		cv::imshow("NORMALIZED DEPTH IMAGE", depth.normalizeDepthImage);
 			count++;
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
