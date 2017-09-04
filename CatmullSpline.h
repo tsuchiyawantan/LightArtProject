@@ -16,7 +16,7 @@ private:
 public:
 	vector<vector<pair<int, int>>> catmullLine;
 	cv::Mat resultImg;
-//	int test_count = 0;
+	int test_count = 0;
 
 	CatmullSpline(){}
 	~CatmullSpline(){}
@@ -62,46 +62,64 @@ public:
 		int limit = 0;
 		int b = 0, g = 0, r = 0;
 		for (int i = 0; i < node_array.size(); i++){
-			if (node_array[i].size() == 0 || catmullLine[i].size()==0) continue;
+			if (node_array[i].size() == 0 || catmullLine[i].size() == 0) continue;
 			double size = 0.5;
 			int k = 0;
+			design.rgb(hue, 100, 255, b, g, r);
+
 			for (int j = 0; j < node_array[i].size() - 1; j++){
 				Node *first_node = node_array[i].at(j);
 				Node *next_node = node_array[i].at(j + 1);
-				if (j == 0 || j == node_array[i].size() - 2){ //始点or終点
+
+				if (!first_node->isAngularNode() && next_node->isAngularNode()){
 					limit = k + (1.0 / T_SIZE);
-					design.rgb(hue, 100, 255, b, g, r);
 					while (k < limit - 1){
+						if (size < 4.0) size += 0.1;
 						int first_y = catmullLine[i].at(k).first;
 						int first_x = catmullLine[i].at(k).second;
 						int next_y = catmullLine[i].at(k + 1).first;
 						int next_x = catmullLine[i].at(k + 1).second;
 						cv::line(srcImg, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
-						cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+					//	cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
 						k++;
 					}
 				}
-				else{
-					if (next_node->isAngularNode()){
-						if (size < 4.0)
-							size += 0.5;
-						design.rgb(hue, 100, 255, b, g, r);
-					}
-					else{
-						if (size > 0.5)
-							size -= 0.5;
-						design.rgb(hue, 255 - 100, 255, b, g, r);
-
-					}
-
+				else if (first_node->isAngularNode() && next_node->isAngularNode()){
 					limit = k + (1.0 / T_SIZE);
+					size = 4.0;
 					while (k < limit - 1){
 						int first_y = catmullLine[i].at(k).first;
 						int first_x = catmullLine[i].at(k).second;
 						int next_y = catmullLine[i].at(k + 1).first;
 						int next_x = catmullLine[i].at(k + 1).second;
 						cv::line(srcImg, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
-						cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+						//cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+						k++;
+					}
+				}
+				else if (first_node->isAngularNode() && !next_node->isAngularNode()){
+					limit = k + (1.0 / T_SIZE);
+					while (k < limit - 1){
+						if (size > 0.5) size -= 0.1;
+						int first_y = catmullLine[i].at(k).first;
+						int first_x = catmullLine[i].at(k).second;
+						int next_y = catmullLine[i].at(k + 1).first;
+						int next_x = catmullLine[i].at(k + 1).second;
+						cv::line(srcImg, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+					//	cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+						k++;
+					}
+				}
+				else {
+					limit = k + (1.0 / T_SIZE);
+					size = 0.5;
+					while (k < limit - 1){
+						int first_y = catmullLine[i].at(k).first;
+						int first_x = catmullLine[i].at(k).second;
+						int next_y = catmullLine[i].at(k + 1).first;
+						int next_x = catmullLine[i].at(k + 1).second;
+						cv::line(srcImg, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+						//cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
 						k++;
 					}
 				}

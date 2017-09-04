@@ -129,7 +129,7 @@ public:
 				mid.x = (start.x + goal.x) / 2;
 				double n = sqrt((next.x - mid.x)*(next.x - mid.x) + (next.y - mid.y)*(next.y - mid.y));
 
-				if (n>1.5){
+				if (n>5.0){
 					next_node->setAngularNode();
 				}
 			}

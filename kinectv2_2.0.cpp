@@ -27,27 +27,30 @@ vector<vector<vector<Node *>>> box_node;
 
 int test_count = 0;
 
-void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
-	catmull.init();
-	catmull.drawLine(result_img, node_array, HUE);
-	//cv::GaussianBlur(result_img, result_img, cv::Size(19, 15), 0, 0);
-	catmull.drawInline(result_img, node_array, HUE);
-}
+void doIm(cv::Mat &result_img, vector<vector<Node *>> node_array, int rows, int cols){
 
-void doIm(vector<vector<Node *>> node_array, int rows, int cols){
-	cv::Mat image = cv::Mat(rows, cols, CV_8UC3, cv::Scalar(0, 0, 0));
+	cv::Mat image = result_img.clone();
 	for (int i = 0; i < node_array.size(); i++){
 		for (int j = 0; j < node_array[i].size(); j++){
 			Node *node = node_array[i].at(j);
 			int y = (*node).getNodeY();
 			int x = (*node).getNodeX();
 			if (node->isAngularNode())
-				circle(image, cv::Point(x, y), 5, cv::Scalar(0, 255, 0), -1, 8);
+				circle(image, cv::Point(x, y), 3, cv::Scalar(0, 255, 0), -1, 8);
 		}
 	}
-	//cv::imwrite("cornerimage/image" + to_string(test_count++) + ".png", image);
-	//cv::imshow("corner", image);
+	cv::imwrite("cornerimage/image" + to_string(test_count++) + ".png", image);
+	cv::imshow("corner", image);
 }
+
+void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
+	catmull.init();
+	catmull.drawLine(result_img, node_array, HUE);
+	//cv::GaussianBlur(result_img, result_img, cv::Size(19, 15), 0, 0);
+	catmull.drawInline(result_img, node_array, HUE);
+	doIm(result_img, node_array, result_img.rows, result_img.cols);
+}
+
 
 void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array){
 	graph.toGraph(src_img, dot.divide_contours, node_array);
@@ -56,8 +59,6 @@ void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array){
 	graph.setCorner(src_img, node_array);
 	graph.setEdge(src_img, node_array);
 	graph.deformeNode(src_img, node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
-	//doIm(node_array, src_img.rows, src_img.cols);
-
 }
 
 void removeNodes(vector<vector<Node *>> &node_array){
@@ -256,7 +257,7 @@ void main() {
 			else
 				/* 残像なしversion */
 				doDot(depth.contourImage, result_img);
-			cv::imwrite("resultimage/image" + to_string(count) + ".png", result_img);
+				cv::imwrite("resultimage/image" + to_string(count) + ".png", result_img);
 
 			//フレームレート落として表示
 			if (count % 2 == 0){
