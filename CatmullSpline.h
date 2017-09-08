@@ -62,7 +62,7 @@ public:
 		int limit = 0;
 		int b = 0, g = 0, r = 0;
 		for (int i = 0; i < node_array.size(); i++){
-			if (node_array[i].size() == 0) continue;
+			if (node_array[i].size() == 0 || catmullLine[i].size()==0) continue;
 			double size = 0.5;
 			int k = 0;
 			for (int j = 0; j < node_array[i].size() - 1; j++){
@@ -77,7 +77,7 @@ public:
 						int next_y = catmullLine[i].at(k + 1).first;
 						int next_x = catmullLine[i].at(k + 1).second;
 						cv::line(srcImg, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
-						//cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+						cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
 						k++;
 					}
 				}
@@ -101,14 +101,14 @@ public:
 						int next_y = catmullLine[i].at(k + 1).first;
 						int next_x = catmullLine[i].at(k + 1).second;
 						cv::line(srcImg, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
-						//cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
+						cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
 						k++;
 					}
 				}
 			}
 		}
 		//cv::imwrite("inlineimage/image" + to_string(test_count++) + ".png", wow);
-		//cv::imshow("inline", wow);
+		cv::imshow("HAND-DRAWING-LIKE IMAGE", wow);
 	}
 
 	void doGaussian(vector<pair<int, int>> &catCtr, cv::Mat &srcImg){
@@ -180,6 +180,22 @@ public:
 						circle(resultImg, cv::Point(x, y), size, cv::Scalar(b, g, r), -1, 8);
 					}
 				}
+				/*if (node_array[i].size() <= 2) break;
+				if (node_array[i].size() == 3){
+					Node *third_node = node_array[i].at(node_array[i].size() - 2);
+					Node *forth_node = node_array[i].at(node_array[i].size() - 1);
+					third.y = (*third_node).getNodeY();
+					third.x = (*third_node).getNodeX();
+					forth.y = (*forth_node).getNodeY();
+					forth.x = (*forth_node).getNodeX();
+					for (double t = 0; t <= 1.0; t += T_SIZE){
+						y = catmullRomFirstLast(third.y, forth.y, t);
+						x = catmullRomFirstLast(third.x, forth.x, t);
+						ctr.push_back(make_pair(y, x));
+						circle(resultImg, cv::Point(x, y), 5, cv::Scalar(b, g, r), -1, 8);
+					}
+					break;
+				}*/
 				Node *first_node = node_array[i].at(j);
 				Node *second_node = node_array[i].at(j + 1);
 				Node *third_node = node_array[i].at(j + 2);
