@@ -12,7 +12,7 @@ public:
 	Graph(){}
 	~Graph(){}
 
-	void toGraph(cv::Mat& src_img, vector<vector<cv::Point>> divcon, vector<vector<Node *>> &node_array){
+	void toGraph(vector<vector<cv::Point>> divcon, vector<vector<Node *>> &node_array){
 		//ノードの用意
 		for (int i = 0; i < divcon.size(); i++){
 			vector<Node *> node_array_child;
@@ -27,7 +27,7 @@ public:
 		}
 	}
 
-	void setEdge(cv::Mat& src_img, vector<vector<Node *>> &node_array){
+	void setEdge(vector<vector<Node *>> &node_array){
 		for (int i = 0; i < node_array.size(); i++){
 			for (int j = 0; j < node_array[i].size(); j++){
 				Node *this_node;
@@ -64,7 +64,7 @@ public:
 		}
 	}
 
-	void setEdgeToOtherNode(cv::Mat& src_img, vector<vector<Node *>> &node_array){
+	void setEdgeToOtherNode(vector<vector<Node *>> &node_array){
 		for (int i = 0; i < node_array.size(); i++){
 			int start_x = node_array[i].at(0)->getNodeX();
 			int start_y = node_array[i].at(0)->getNodeY();
@@ -104,7 +104,7 @@ public:
 	}	
 	
 	//点列の角であろう点だけをset
-	void setCorner(cv::Mat& src_img, vector<vector<Node *>> &node_array){
+	void setCorner(vector<vector<Node *>> &node_array){
 		cv::Point start;
 		cv::Point goal;
 		cv::Point mid;
@@ -154,7 +154,7 @@ public:
 		return ans_node;
 	}
 
-	void deformeNode(cv::Mat src_img, vector<vector<Node *>> &node_array, vector<vector<vector<Node *>>> box_node, int bw, int bh){
+	void deformeNode(vector<vector<Node *>> &node_array, vector<vector<vector<Node *>>> box_node, int bw, int bh){
 		if (box_node.size() != 0){
 			for (int i = 0; i < node_array.size(); i++){
 				for (int j = 0; j < node_array[i].size(); j += 1){

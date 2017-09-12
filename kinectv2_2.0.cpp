@@ -30,7 +30,7 @@ int test_count = 0;
 void doIm(cv::Mat &result_img, vector<vector<Node *>> node_array, int rows, int cols){
 
 	cv::Mat image = result_img.clone();
-	/*for (int i = 0; i < node_array.size(); i++){
+	for (int i = 0; i < node_array.size(); i++){
 		for (int j = 0; j < node_array[i].size(); j++){
 			Node *node = node_array[i].at(j);
 			int y = (*node).getNodeY();
@@ -38,7 +38,7 @@ void doIm(cv::Mat &result_img, vector<vector<Node *>> node_array, int rows, int 
 			if (node->isAngularNode())
 				circle(image, cv::Point(x, y), 3, cv::Scalar(0, 255, 0), -1, 8);
 		}
-	}*/
+	}
 	//cv::imwrite("cornerimage/image" + to_string(test_count++) + ".png", image);
 	cv::imshow("corner", image);
 }
@@ -46,18 +46,20 @@ void doIm(cv::Mat &result_img, vector<vector<Node *>> node_array, int rows, int 
 void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
 	catmull.init();
 	catmull.drawLine(result_img, node_array, HUE);
-	catmull.drawInline(result_img, node_array, HUE);
-	doIm(result_img, node_array, result_img.rows, result_img.cols);
+	catmull.drawInlineHanddraw(result_img, node_array, HUE);
+	/* 手描き風じゃない線の表示 */
+	//catmull.drawInline(result_img, node_array, HUE);
+	//doIm(result_img, node_array, result_img.rows, result_img.cols);
 }
 
 
-void doGraph(cv::Mat &src_img, vector<vector<Node *>> &node_array){
-	graph.toGraph(src_img, dot.divide_contours, node_array);
+void doGraph(vector<vector<Node *>> &node_array){
+	graph.toGraph(dot.divide_contours, node_array);
 	//始点へのエッジを二番目へのエッジに変更する関数はここに入れる
-	graph.setEdgeToOtherNode(src_img, node_array);
-	graph.setCorner(src_img, node_array);
-	graph.setEdge(src_img, node_array);
-	graph.deformeNode(src_img, node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
+	graph.setEdgeToOtherNode(node_array);
+	graph.setCorner(node_array);
+	graph.setEdge(node_array);
+	graph.deformeNode(node_array, ::box_node, BOX_WIDTH, BOX_HEIGHT);
 }
 
 void removeNodes(vector<vector<Node *>> &node_array){
@@ -195,7 +197,7 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	dot.findStart(src_img);
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
-	doGraph(src_img, node_array);
+	doGraph(node_array);
 	doCatmull(result_img, node_array);
 
 	if (former_node_array.size()) {
@@ -213,7 +215,7 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	}
 }
 
-void doAfterImg(cv::Mat &result_img, cv::Mat depthcontour_img, vector<cv::Mat> &afterimg_array){
+void doAfterImg(cv::Mat &result_img, cv::Mat depthcontour_img, vector<cv::Mat> &afterimg_array, int count){
 	//1回目はdotから始めて、2回目以降はeffectかけたresultがほしいので、effectから始める
 	if (afterimg_array.size() == 0){
 		doDot(depthcontour_img, result_img);
@@ -241,6 +243,8 @@ void main() {
 		cv::Mat rgb_img;
 		cv::Mat result_img;
 		vector<cv::Mat> afterimg_array;
+		cv::Mat baseimage(cv::Size(1920, 1080), CV_8UC3);
+
 		int count = 0;
 
 		while (1) {
@@ -251,20 +255,21 @@ void main() {
 			resize(rgb_img, rgb_img, cv::Size(), 0.2, 0.2);
 			result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
-				doAfterImg(result_img, depth.contourImage, afterimg_array);
+				doAfterImg(result_img, depth.contourImage, afterimg_array, count);
 			}
 			else
 				/* 残像なしversion */
 				doDot(depth.contourImage, result_img);
-			cv::imwrite("resultimage/image" + to_string(count) + ".png", result_img);
+		//	cv::imwrite("resultimage/image" + to_string(count) + ".png", result_img);
 
 			//フレームレート落として表示
 			if (count % 2 == 0){
 				cv::imshow("RESULT IMAGE", result_img);
 
 			}
-			cv::imshow("RGB IMAGE", rgb_img);
+			//cv::imshow("RGB IMAGE", rgb_img);
 			cv::imshow("NORMALIZED DEPTH IMAGE", depth.normalizeDepthImage);
+			//cv::imshow("BASE IMAGE", baseimage);
 			count++;
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;

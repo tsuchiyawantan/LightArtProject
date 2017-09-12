@@ -56,14 +56,15 @@ public:
 			int x = i % srcImg.cols;
 			if (bodyIndexBuffer[i] == 255) normalizeDepthImage.at<UCHAR>(y, x) = 255;
 			else {
-				normalizeDepthImage.at<UCHAR>(y, x) = (255 * (srcImg.at<UINT16>(y, x)) / (depthMax - depthMin));
+				normalizeDepthImage.at<UCHAR>(y, x) = (199 * (srcImg.at<UINT16>(y, x)) / (depthMax - depthMin));
 			}
 		}
 	}
 	void setContour(cv::Mat &srcImg){
 		cv::Mat image2 = srcImg.clone();
+		cv::GaussianBlur(image2, image2, cv::Size(5, 5), 0, 0);
 		contourImage = cv::Mat(srcImg.rows, srcImg.cols, CV_8UC1);
-		cv::Canny(image2, contourImage, 20, 75);
+		cv::Canny(image2, contourImage, 1, 30);
 
 	}
 };

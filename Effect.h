@@ -16,10 +16,6 @@ public:
 	Effect(){}
 	~Effect(){}
 	
-
-	void ororMat(cv::Mat &img1, cv::Mat &img2, cv::Mat &result_img){
-		bitwise_or(img1, img2, result_img);
-	}
 	void applyFilteringMulti(cv::Mat &src_img, cv::Mat &result_img, double filter){
 		for (int i = 0; i < src_img.rows; i++){
 			for (int j = 0; j < src_img.cols; j++){
@@ -32,6 +28,7 @@ public:
 			}
 		}
 	}
+
 	void applyFilteringAdd(cv::Mat &src_img, double filter){
 		for (int i = 0; i < src_img.rows; i++){
 			for (int j = 0; j < src_img.cols; j++){
@@ -51,7 +48,7 @@ public:
 			if (afterimg_array.size() > AFTER_FRAME) afterimg_array.erase(afterimg_array.begin());
 			//afterimg_array”z—ñ‚É1/X‚ð‘«‚µŽZ‚µ‚Ä‚¢‚­
 			for (int i = 0; i < afterimg_array.size(); i++){
-				applyFilteringAdd(afterimg_array.at(i), 1.0 / AFTER_FRAME);
+			//	applyFilteringAdd(afterimg_array.at(i), 1.0 / AFTER_FRAME);
 			}
 		}
 		applyFilteringMulti(src_img, src_multi_img, 1.0 / AFTER_FRAME);
