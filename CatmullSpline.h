@@ -80,6 +80,7 @@ public:
 						cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
 						k++;
 					}
+
 				}
 				else{
 					if (next_node->isAngularNode()){
