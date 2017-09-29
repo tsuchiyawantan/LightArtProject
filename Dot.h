@@ -72,6 +72,7 @@ public:
 			}
 		}
 	}
+
 	int countW8(cv::Mat& srcImg, int y, int x) {
 		int n[8][2] = { { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 } };
 		int count = 0;
@@ -83,6 +84,7 @@ public:
 		}
 		return count;
 	}
+
 	void findStart(cv::Mat &srcImg){
 		for (auto itr = white_dots.begin(); itr != white_dots.end(); ++itr) {
 			int y = (*itr).first;
@@ -91,15 +93,18 @@ public:
 		}
 		sort(priority_start.begin(), priority_start.end());
 	}
+
 	bool isExistS(int y, int x, set<pair<int, int>> &s){
 		if (s.find(make_pair(y, x)) == s.end()) return 0;
 		return 1;
 	}
+
 	bool isExistV(int y, int x, vector<pair<int, int>> &v){
 		auto itr = find(v.begin(), v.end(), make_pair(y, x));
 		if (itr == v.end()) return 0;
 		return 1;
 	}
+
 	bool insertYX(cv::Mat &srcImg, vector<pair<int, int>> &ctr, int y, int x, vector<int> &dir){
 		vector<pair<int, int>> n = { { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 } };
 		vector<int> j = { 0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7 };
