@@ -27,10 +27,12 @@ public:
 	cv::Mat bodyDepthImage;
 	cv::Mat normalizeDepthImage;
 	cv::Mat contourImage;
+
 	void findDepthMaxMin(int y, int x, int a){
 		if (depthMax < a) depthMax = a;
 		if (depthMin > a) depthMin = a;
 	}
+
 	void setBodyDepth(){
 		updateDepthFrame();
 		updateBodyIndexFrame();
@@ -49,6 +51,7 @@ public:
 			}
 		}
 	}
+	
 	void setNormalizeDepth(cv::Mat &srcImg){
 		normalizeDepthImage = cv::Mat(srcImg.rows, srcImg.cols, CV_8UC1);
 		for (int i = 0; i < srcImg.rows*srcImg.cols; i++) {
@@ -60,11 +63,14 @@ public:
 			}
 		}
 	}
+	
 	void setContour(cv::Mat &srcImg){
 		cv::Mat image2 = srcImg.clone();
+		cv::dilate(image2, image2, cv::Mat(), cv::Point(-1, -1), 1);
+		cv::erode(image2, image2, cv::Mat(), cv::Point(-1, -1), 1);
 		cv::GaussianBlur(image2, image2, cv::Size(5, 5), 0, 0);
 		contourImage = cv::Mat(srcImg.rows, srcImg.cols, CV_8UC1);
-		cv::Canny(image2, contourImage, 1, 30);
+		cv::Canny(image2, contourImage, 10, 30);
 
 	}
 };

@@ -235,6 +235,8 @@ void doAfterImg(cv::Mat &result_img, cv::Mat depthcontour_img, vector<cv::Mat> &
 	}
 }
 
+
+
 void main() {
 	try {
 		Depth depth;
@@ -268,7 +270,7 @@ void main() {
 
 			}
 			//cv::imshow("RGB IMAGE", rgb_img);
-			cv::imshow("NORMALIZED DEPTH IMAGE", depth.normalizeDepthImage);
+			//cv::imshow("NORMALIZED DEPTH IMAGE", depth.normalizeDepthImage);
 			//cv::imshow("BASE IMAGE", baseimage);
 			count++;
 			auto key = cv::waitKey(20);
