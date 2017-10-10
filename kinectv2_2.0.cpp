@@ -245,7 +245,12 @@ void main() {
 		cv::Mat rgb_img;
 		cv::Mat result_img;
 		vector<cv::Mat> afterimg_array;
-		cv::Mat baseimage(cv::Size(1920, 1080), CV_8UC3);
+
+		cv::VideoWriter writer("output.avi", cv::VideoWriter::fourcc('I', '4', '2', '0'), 15, cv::Size(512, 424), true);
+		if (!writer.isOpened()){
+			cout << "Error!! Unable to open video file for output." << endl;
+			exit(-1);
+		}
 
 		int count = 0;
 
@@ -267,6 +272,8 @@ void main() {
 			//フレームレート落として表示
 			if (count % 2 == 0){
 				cv::imshow("RESULT IMAGE", result_img);
+				cv::GaussianBlur(result_img, result_img, cv::Size(51, 3), 20, 3);
+				writer << result_img;
 
 			}
 			//cv::imshow("RGB IMAGE", rgb_img);
