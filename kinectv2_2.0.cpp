@@ -14,7 +14,7 @@
 
 #define HUE 0
 #define SPACESIZE 10
-#define EFFECT_FLAG 1
+#define EFFECT_FLAG 0
 #define BOX_WIDTH 20
 #define BOX_HEIGHT 20
 
@@ -264,7 +264,7 @@ void main() {
 		Depth depth;
 		Log log;
 		log.Initialize("logPOINTER.txt");
-		cv::Mat rgb_img, result_img, ppl_img, matty, dummy;
+		cv::Mat rgb_img, result_img, ppl_img, temp_img, dummy;
 		vector<cv::Mat> afterimg_array;
 		vector<cv::Mat> ppl_back;
 
@@ -273,10 +273,10 @@ void main() {
 			std::cout << "Unable to open the camera\n";
 			std::exit(-1);
 		}
-		int width = static_cast<int>(cap.get(CV_CAP_PROP_FRAME_WIDTH));
-		int height = static_cast<int>(cap.get(CV_CAP_PROP_FRAME_HEIGHT));
 
-		cv::VideoWriter writer("output.avi", cv::VideoWriter::fourcc('I', '4', '2', '0'), 15, cv::Size(width, height), true);
+		int width = static_cast<int>(cap.get(CV_CAP_PROP_FRAME_WIDTH));
+		int height = static_cast<int>(cap.get(CV_CAP_PROP_FRAME_HEIGHT));		
+		cv::VideoWriter writer("ppls/ppl_result.avi", cv::VideoWriter::fourcc('I', '4', '2', '0'), 30, cv::Size(width, height), true);
 		if (!writer.isOpened()){
 			cout << "Error!! Unable to open video file for output." << endl;
 			exit(-1);
@@ -292,7 +292,6 @@ void main() {
 			ppl_back.push_back(dummy);
 		}
 
-
 		int count = 0;
 		int pplc = 0;
 
@@ -302,34 +301,25 @@ void main() {
 			depth.setBodyDepth();
 			depth.setNormalizeDepth(depth.bodyDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
-//			result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
-			result_img = cv::Mat(ppl_back.at(pplc).rows, ppl_back.at(pplc).cols, CV_8UC3, cv::Scalar(0, 0, 0));
-			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
-				cv::cvtColor(ppl_back.at(pplc), matty, cv::COLOR_BGR2GRAY);
-				cv::threshold(matty, matty, 1, 255, cv::THRESH_BINARY);
-				
-				//string ty = type2str(depth.contourImage.type());
-				//printf("Matrix: %s %dx%d \n", ty.c_str(), matty.cols, matty.rows);
-//				doAfterImg(result_img, depth.contourImage, afterimg_array, count);
-				doAfterImg(result_img, matty, afterimg_array, count);
+		
+			temp_img = ppl_back.at(pplc);
+			result_img = temp_img.clone();
+			//result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 
-				pplc++;
+			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
+				doAfterImg(result_img, depth.contourImage, afterimg_array, count);
 			}
 			else
 				/* 残像なしversion */
 				doDot(depth.contourImage, result_img);
-			//	cv::imwrite("resultimage/image" + to_string(count) + ".png", result_img);
 
 			//フレームレート落として表示
 			if (count % 1 == 0){
 				cv::imshow("RESULT IMAGE", result_img);
-				cv::GaussianBlur(result_img, result_img, cv::Size(51, 3), 20, 3);
 				writer << result_img;
 			}
-			//cv::imshow("RGB IMAGE", rgb_img);
-			//cv::imshow("NORMALIZED DEPTH IMAGE", depth.normalizeDepthImage);
-			//cv::imshow("BASE IMAGE", baseimage);
 			count++;
+			pplc++;
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
 
