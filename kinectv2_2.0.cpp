@@ -235,6 +235,8 @@ void doAfterImg(cv::Mat &result_img, cv::Mat depthcontour_img, vector<cv::Mat> &
 	}
 }
 
+//string ty = type2str(alpha_img.type());
+//printf("Matrix: %s %dx%d \n", ty.c_str(), alpha_img.cols, alpha_img.rows);
 string type2str(int type) {
 	string r;
 
@@ -258,13 +260,29 @@ string type2str(int type) {
 	return r;
 }
 
+void makeOverwriteImage(cv::Mat src_image, cv::Mat &foreground_image, cv::Mat &alpha_image){
+	cv::dilate(src_image, src_image, cv::Mat(), cv::Point(-1, -1), 3);
+	cv::Mat result_image = src_image.clone();
+	//string ty = type2str(dummy.type());
+	//prisntf("Matrix: %s %dx%d \n", ty.c_str(), dummy.cols, dummy.rows);
+	cv::threshold(result_image, alpha_image, 200, 255, cv::THRESH_BINARY_INV);
+	cv::threshold(alpha_image, foreground_image, 0, 255, cv::THRESH_BINARY_INV);
+	cv::cvtColor(alpha_image, alpha_image, cv::COLOR_GRAY2BGR);
+	cv::cvtColor(foreground_image, foreground_image, cv::COLOR_GRAY2BGR);
+}
+
+void alphaBlend(cv::Mat foreground_image, cv::Mat background_image, cv::Mat alpha_image, cv::Mat &result_image){
+	cv::multiply(alpha_image, foreground_image, foreground_image);
+	cv::multiply(cv::Scalar::all(1.0) - alpha_image, background_image, background_image);
+	cv::add(foreground_image, background_image, result_image);
+}
 
 void main() {
 	try {
 		Depth depth;
 		Log log;
 		log.Initialize("logPOINTER.txt");
-		cv::Mat rgb_img, result_img, ppl_img, temp_img, dummy;
+		cv::Mat rgb_img, result_img, ppl_img, temp_img, dummy, alpha_img, foreground_img;
 		vector<cv::Mat> afterimg_array;
 		vector<cv::Mat> ppl_back;
 
@@ -301,11 +319,11 @@ void main() {
 			depth.setBodyDepth();
 			depth.setNormalizeDepth(depth.bodyDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
-		
+
+			makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
+
 			temp_img = ppl_back.at(pplc);
 			result_img = temp_img.clone();
-			//result_img = cv::Mat(depth.contourImage.rows, depth.contourImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
-
 			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
 				doAfterImg(result_img, depth.contourImage, afterimg_array, count);
 			}
@@ -314,7 +332,8 @@ void main() {
 				doDot(depth.contourImage, result_img);
 
 			//フレームレート落として表示
-			if (count % 1 == 0){
+			if (count % 2 == 0){
+				alphaBlend(foreground_img, result_img, alpha_img, result_img);
 				cv::imshow("RESULT IMAGE", result_img);
 				writer << result_img;
 			}
