@@ -292,14 +292,6 @@ void main() {
 			std::exit(-1);
 		}
 
-		int width = static_cast<int>(cap.get(CV_CAP_PROP_FRAME_WIDTH));
-		int height = static_cast<int>(cap.get(CV_CAP_PROP_FRAME_HEIGHT));		
-		cv::VideoWriter writer("ppls/ppl_result.avi", cv::VideoWriter::fourcc('I', '4', '2', '0'), 30, cv::Size(width, height), true);
-		if (!writer.isOpened()){
-			cout << "Error!! Unable to open video file for output." << endl;
-			exit(-1);
-		}
-
 		while (true) {
 			cap >> ppl_img;
 			if (ppl_img.empty()) {
@@ -335,7 +327,6 @@ void main() {
 			if (count % 2 == 0){
 				alphaBlend(foreground_img, result_img, alpha_img, result_img);
 				cv::imshow("RESULT IMAGE", result_img);
-				writer << result_img;
 			}
 			count++;
 			pplc++;
