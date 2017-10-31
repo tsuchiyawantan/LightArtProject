@@ -318,7 +318,7 @@ bool checkisEmpty(vector<int> check){
 void createBackGround(cv::Mat &result_image, vector<People> &videos, vector<int> &check, int count, int fps, bool ppl_flag){
 	if (count < 10) return;
 	if (ppl_flag){
-		if (checkisAvailable(check) && count % 30 == 0){
+		if (checkisAvailable(check) && count % 20 == 0){
 			int i = getRandomNumfromVids(check);
 			check.at(i) = 1;
 		}
@@ -383,6 +383,7 @@ void main() {
 			result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
 			createBackGround(result_img, videos, check, count, fps, ppl_flag);
 			makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
+			cv::GaussianBlur(result_img, result_img, cv::Size(21, 3), 20, 3);
 
 			if (EFFECT_FLAG){			/* EFFECT_FLAG=1‚È‚ç‚ÎAŽc‘œ‚ ‚èversion */
 				doAfterImg(result_img, depth.contourImage, afterimg_array, count);

@@ -15,8 +15,8 @@ private:
 	cv::Mat temp_image, interpolate_image;
 	bool used = false;
 	int fps = -1;
-	int frame_count = 0;
 	int index = 0;
+	int frame_count = 1;
 
 public:
 	void changeDesign(cv::Mat &src_image, int i){
@@ -64,16 +64,22 @@ public:
 	}
 
 	void addIndex(){
-		index++;
+		if (getFps() > 30){
+			index = index + 5;
+		}
+		else index++;
 	}
+
 	int getPics(cv::Mat &image, int fps){
 		int index = getIndex();
 		if (index > pics.size() - 1){
 			setIndex(0);
+			frame_count = 1;
 			return -1;
 		}
 		image = pics.at(index);
 		addIndex();
+		frame_count++;
 		return 1;
 	}
 
