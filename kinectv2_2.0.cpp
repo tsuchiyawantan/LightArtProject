@@ -13,7 +13,7 @@
 #include "Graph.h"
 #include "People.h"
 
-#define HUE 0
+#define HUE 60
 #define SPACESIZE 10
 #define EFFECT_FLAG 0
 #define BOX_WIDTH 20
@@ -265,7 +265,7 @@ void makeOverwriteImage(cv::Mat src_image, cv::Mat &foreground_image, cv::Mat &a
 	cv::dilate(src_image, src_image, cv::Mat(), cv::Point(-1, -1), 3);
 	cv::Mat result_image = src_image.clone();
 	//string ty = type2str(dummy.type());
-	//prisntf("Matrix: %s %dx%d \n", ty.c_str(), dummy.cols, dummy.rows);
+	//printf("Matrix: %s %dx%d \n", ty.c_str(), dummy.cols, dummy.rows);
 	cv::threshold(result_image, alpha_image, 200, 255, cv::THRESH_BINARY_INV);
 	cv::threshold(alpha_image, foreground_image, 0, 255, cv::THRESH_BINARY_INV);
 	cv::cvtColor(alpha_image, alpha_image, cv::COLOR_GRAY2BGR);
@@ -316,13 +316,14 @@ bool checkisEmpty(vector<int> check){
 }
 
 void createBackGround(cv::Mat &result_image, vector<People> &videos, vector<int> &check, int count, int fps, bool ppl_flag){
+	if (count < 10) return;
 	if (ppl_flag){
-		if (count % 40 == 0 && checkisAvailable(check)){
+		if (checkisAvailable(check) && count % 30 == 0){
 			int i = getRandomNumfromVids(check);
 			check.at(i) = 1;
 		}
 		int l = 0;
-		for (auto itr = check.begin(); itr != check.end(); ++itr){
+		for (auto itr = check.begin(); itr != check.end(); ++itr, l++){
 			if (*itr < 0) continue;
 			cv::Mat image;
 			videos.at(l).getPics(image, fps);
@@ -330,9 +331,8 @@ void createBackGround(cv::Mat &result_image, vector<People> &videos, vector<int>
 				cv::bitwise_or(image, result_image, result_image);
 			}
 			else {
-				*itr = 0;
+				*itr = -1;
 			}
-			l++;
 		}
 	}
 	
@@ -341,25 +341,18 @@ void createBackGround(cv::Mat &result_image, vector<People> &videos, vector<int>
 		//no people and no video frame
 		int check_counter = 0;
 		int l = 0;
-		for (auto itr = check.begin(); itr != check.end(); ++itr){
-			if (*itr < 1) { 
-				check_counter++;
+		for (auto itr = check.begin(); itr != check.end(); ++itr, l++){
+			if (*itr < 0) { 
 				continue;
 			}
 			cv::Mat image;
-			videos.at(*itr).getPics(image, fps);
+			videos.at(l).getPics(image, fps);
 			if (!image.empty()){
 				cv::bitwise_or(image, result_image, result_image);
 			}
 			else {
-				*itr = 0;
+				*itr = -1;
 			}
-			l++;
-		}
-		if (check_counter == videos.size()){
-			check.clear();
-			check.shrink_to_fit();
-			check.resize(videos.size(), -1);
 		}
 	}
 }
@@ -387,7 +380,7 @@ void main() {
 			depth.setNormalizeDepth(depth.bodyDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
 
-			result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC1, cv::Scalar(0, 0, 0));
+			result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
 			createBackGround(result_img, videos, check, count, fps, ppl_flag);
 
 			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
@@ -399,7 +392,7 @@ void main() {
 
 			//フレームレート落として表示
 			if (count % 2 == 0){
-				//alphaBlend(foreground_img, result_img, alpha_img, result_img);
+				alphaBlend(foreground_img, result_img, alpha_img, result_img);
 				cv::imshow("RESULT IMAGE", result_img);
 			}
 			count++;

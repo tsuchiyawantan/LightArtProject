@@ -41,6 +41,7 @@ public:
 				break;
 			}
 			cv::cvtColor(temp_image, temp_image, cv::COLOR_BGR2GRAY);
+			cv::cvtColor(temp_image, temp_image, cv::COLOR_GRAY2BGR);
 			changeDesign(temp_image, i);
 			pics.push_back(temp_image);
 		}
@@ -58,12 +59,19 @@ public:
 		return index;
 	}
 
+	void setIndex(int i){
+		index = i;
+	}
+
 	void addIndex(){
 		index++;
 	}
 	int getPics(cv::Mat &image, int fps){
 		int index = getIndex();
-		if (index > pics.size()) return -1;
+		if (index > pics.size() - 1){
+			setIndex(0);
+			return -1;
+		}
 		image = pics.at(index);
 		addIndex();
 		return 1;
