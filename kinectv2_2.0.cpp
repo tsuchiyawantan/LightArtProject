@@ -382,6 +382,7 @@ void main() {
 
 			result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
 			createBackGround(result_img, videos, check, count, fps, ppl_flag);
+			makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
 
 			if (EFFECT_FLAG){			/* EFFECT_FLAG=1Ç»ÇÁÇŒÅAécëúÇ†ÇËversion */
 				doAfterImg(result_img, depth.contourImage, afterimg_array, count);
