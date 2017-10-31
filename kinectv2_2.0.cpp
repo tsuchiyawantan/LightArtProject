@@ -11,6 +11,7 @@
 #include "Effect.h"
 #include "Node.h"
 #include "Graph.h"
+#include "People.h"
 
 #define HUE 0
 #define SPACESIZE 10
@@ -277,45 +278,118 @@ void alphaBlend(cv::Mat foreground_image, cv::Mat background_image, cv::Mat alph
 	cv::add(foreground_image, background_image, result_image);
 }
 
+void createBackGroundVideos(vector<People> &videos){
+	int count = 1;
+	//Capture recorded vids
+	while (true){
+		cv::VideoCapture cap("ppls/ppl_" + to_string(count) + ".avi");
+		if (!cap.isOpened()) {
+			cout << "Unable to open the camera\n";
+			break;
+		}
+		People people(cap);
+		videos.push_back(people);
+		count++;
+	}
+}
+
+int getRandomNumfromVids(vector<int> check){
+	int random_num = rand() % check.size();
+	if (check.at(random_num) > 0)  return getRandomNumfromVids(check);
+	return random_num;
+}
+
+bool checkisAvailable(vector<int> check){
+	for (auto itr = check.begin(); itr != check.end(); ++itr){
+		if (*itr < 0) return true;
+	}
+	return false;
+}
+
+//-1: empty
+//1: not empty
+bool checkisEmpty(vector<int> check){
+	for (auto itr = check.begin(); itr != check.end(); ++itr){
+		if (*itr > 0) return false;
+	}
+	return true;
+}
+
+void createBackGround(cv::Mat &result_image, vector<People> &videos, vector<int> &check, int count, int fps, bool ppl_flag){
+	if (ppl_flag){
+		if (count % 40 == 0 && checkisAvailable(check)){
+			int i = getRandomNumfromVids(check);
+			check.at(i) = 1;
+		}
+		int l = 0;
+		for (auto itr = check.begin(); itr != check.end(); ++itr){
+			if (*itr < 0) continue;
+			cv::Mat image;
+			videos.at(l).getPics(image, fps);
+			if (!image.empty()){
+				cv::bitwise_or(image, result_image, result_image);
+			}
+			else {
+				*itr = 0;
+			}
+			l++;
+		}
+	}
+	
+	//fade
+	if (!ppl_flag){
+		//no people and no video frame
+		int check_counter = 0;
+		int l = 0;
+		for (auto itr = check.begin(); itr != check.end(); ++itr){
+			if (*itr < 1) { 
+				check_counter++;
+				continue;
+			}
+			cv::Mat image;
+			videos.at(*itr).getPics(image, fps);
+			if (!image.empty()){
+				cv::bitwise_or(image, result_image, result_image);
+			}
+			else {
+				*itr = 0;
+			}
+			l++;
+		}
+		if (check_counter == videos.size()){
+			check.clear();
+			check.shrink_to_fit();
+			check.resize(videos.size(), -1);
+		}
+	}
+}
+
 void main() {
 	try {
+		srand(time(NULL));
 		Depth depth;
-		Log log;
-		log.Initialize("logPOINTER.txt");
+		vector<People> videos;
 		cv::Mat rgb_img, result_img, ppl_img, temp_img, dummy, alpha_img, foreground_img;
 		vector<cv::Mat> afterimg_array;
 		vector<cv::Mat> ppl_back;
-
-		cv::VideoCapture cap("ppl.avi");
-		if (!cap.isOpened()) {
-			std::cout << "Unable to open the camera\n";
-			std::exit(-1);
-		}
-
-		while (true) {
-			cap >> ppl_img;
-			if (ppl_img.empty()) {
-				std::cout << "Can't read frames from your camera\n";
-				break;
-			}
-			dummy = ppl_img.clone();
-			ppl_back.push_back(dummy);
-		}
-
+		vector<int> check;
+		int fps = 30;
 		int count = 0;
-		int pplc = 0;
+		bool ppl_flag;
+
+		createBackGroundVideos(videos);
+		check.resize(videos.size(), -1);
 
 		while (1) {
-			if (pplc == ppl_back.size()) pplc = 0;
+			ppl_flag = false;
 			depth.setRGB(rgb_img);
-			depth.setBodyDepth();
+			depth.setBodyDepth(ppl_flag);
 			depth.setNormalizeDepth(depth.bodyDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
 
-			makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
+			result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC1, cv::Scalar(0, 0, 0));
+			createBackGround(result_img, videos, check, count, fps, ppl_flag);
 
-			temp_img = ppl_back.at(pplc);
-			result_img = temp_img.clone();
 			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
 				doAfterImg(result_img, depth.contourImage, afterimg_array, count);
 			}
@@ -325,11 +399,10 @@ void main() {
 
 			//フレームレート落として表示
 			if (count % 2 == 0){
-				alphaBlend(foreground_img, result_img, alpha_img, result_img);
+				//alphaBlend(foreground_img, result_img, alpha_img, result_img);
 				cv::imshow("RESULT IMAGE", result_img);
 			}
 			count++;
-			pplc++;
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
 
