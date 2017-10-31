@@ -293,6 +293,7 @@ void createBackGroundVideos(vector<People> &videos){
 	}
 }
 
+<<<<<<< HEAD
 int getRandomNumfromVids(vector<int> check){
 	int random_num = rand() % check.size();
 	if (check.at(random_num) > 0)  return getRandomNumfromVids(check);
@@ -332,6 +333,13 @@ void createBackGround(cv::Mat &result_image, vector<People> &videos, vector<int>
 			}
 			else {
 				*itr = -1;
+=======
+		while (true) {
+			cap >> ppl_img;
+			if (ppl_img.empty()) {
+				std::cout << "Can't read frames from your camera\n";
+				break;
+>>>>>>> 74f5ee241f9de66ba0ae7fc9f27f3d91c217c5c1
 			}
 		}
 	}
