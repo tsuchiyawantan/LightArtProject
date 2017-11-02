@@ -395,6 +395,8 @@ void main() {
 			//フレームレート落として表示
 			if (count % 2 == 0){
 				alphaBlend(foreground_img, result_img, alpha_img, result_img);
+				//cv::resize(result_img, result_img, );
+				cv::namedWindow("RESULT IMAGE", cv::WINDOW_NORMAL);
 				cv::imshow("RESULT IMAGE", result_img);
 			}
 			count++;
