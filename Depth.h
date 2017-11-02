@@ -33,7 +33,7 @@ public:
 		if (depthMin > a) depthMin = a;
 	}
 
-	void setBodyDepth(){
+	void setBodyDepth(bool &ppl_flag){
 		updateDepthFrame();
 		updateBodyIndexFrame();
 		bodyDepthImage = cv::Mat(depthHeight, depthWidth, CV_16UC1);
@@ -46,6 +46,7 @@ public:
 				bodyDepthImage.at<UINT16>(y, x) = 65535;
 			}
 			else {
+				ppl_flag = true;
 				bodyDepthImage.at<UINT16>(y, x) = depthBuffer[i];
 				findDepthMaxMin(y, x, depthBuffer[i]);
 			}
@@ -71,6 +72,6 @@ public:
 		cv::GaussianBlur(image2, image2, cv::Size(5, 5), 0, 0);
 		contourImage = cv::Mat(srcImg.rows, srcImg.cols, CV_8UC1);
 		cv::Canny(image2, contourImage, 10, 30);
-
 	}
+
 };
