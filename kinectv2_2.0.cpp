@@ -15,7 +15,7 @@
 
 #define HUE 60
 #define SPACESIZE 10
-#define EFFECT_FLAG 0
+#define EFFECT_FLAG 1
 #define BOX_WIDTH 20
 #define BOX_HEIGHT 20
 
@@ -381,9 +381,9 @@ void main() {
 			depth.setContour(depth.normalizeDepthImage);
 
 			result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
-			createBackGround(result_img, videos, check, count, fps, ppl_flag);
-			makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
-			cv::GaussianBlur(result_img, result_img, cv::Size(21, 3), 20, 3);
+		//	createBackGround(result_img, videos, check, count, fps, ppl_flag);
+		//	makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
+		//	cv::GaussianBlur(result_img, result_img, cv::Size(21, 3), 20, 3);
 
 			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
 				doAfterImg(result_img, depth.contourImage, afterimg_array, count);
@@ -394,8 +394,7 @@ void main() {
 
 			//フレームレート落として表示
 			if (count % 2 == 0){
-				alphaBlend(foreground_img, result_img, alpha_img, result_img);
-				//cv::resize(result_img, result_img, );
+			//	alphaBlend(foreground_img, result_img, alpha_img, result_img);
 				cv::namedWindow("RESULT IMAGE", cv::WINDOW_NORMAL);
 				cv::imshow("RESULT IMAGE", result_img);
 			}
