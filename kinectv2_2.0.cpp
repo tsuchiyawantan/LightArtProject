@@ -15,7 +15,7 @@
 
 #define HUE 60
 #define SPACESIZE 10
-#define EFFECT_FLAG 1
+#define EFFECT_FLAG 0
 #define BOX_WIDTH 20
 #define BOX_HEIGHT 20
 
@@ -315,7 +315,7 @@ bool checkisEmpty(vector<int> check){
 	return true;
 }
 
-void createBackGround(cv::Mat &result_image, vector<People> &videos, vector<int> &check, int count, int fps, bool ppl_flag){
+void createPeopleBackground(cv::Mat &result_image, vector<People> &videos, vector<int> &check, int count, int fps, bool ppl_flag){
 	if (count < 10) return;
 	if (ppl_flag){
 		if (checkisAvailable(check) && count % 20 == 0){
@@ -357,6 +357,17 @@ void createBackGround(cv::Mat &result_image, vector<People> &videos, vector<int>
 	}
 }
 
+void createBackground(cv::Mat &result_img, int depth_max){
+	Effect effect;
+	if (depth_max < 1){
+		depth_max = 1000;
+	}
+	/* 2200 is the best */
+	double val = depth_max / 1000.0;
+	if (val < 1) val = 1.0;
+	effect.applyFilteringMulti(result_img, result_img, 1.0 / sqrt(val));
+}
+
 void main() {
 	try {
 		srand(time(NULL));
@@ -364,7 +375,6 @@ void main() {
 		vector<People> videos;
 		cv::Mat rgb_img, result_img, ppl_img, temp_img, dummy, alpha_img, foreground_img;
 		vector<cv::Mat> afterimg_array;
-		vector<cv::Mat> ppl_back;
 		vector<int> check;
 		int fps = 30;
 		int count = 0;
@@ -380,10 +390,12 @@ void main() {
 			depth.setNormalizeDepth(depth.bodyDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
 
-			result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
-		//	createBackGround(result_img, videos, check, count, fps, ppl_flag);
-		//	makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
-		//	cv::GaussianBlur(result_img, result_img, cv::Size(21, 3), 20, 3);
+			//result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
+			result_img = cv::imread("street.jpg", cv::IMREAD_UNCHANGED);
+			createPeopleBackground(result_img, videos, check, count, fps, ppl_flag);
+			createBackground(result_img, depth.depthMax);
+			makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
+			//cv::GaussianBlur(result_img, result_img, cv::Size(21, 3), 20, 3);
 
 			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
 				doAfterImg(result_img, depth.contourImage, afterimg_array, count);
@@ -394,7 +406,7 @@ void main() {
 
 			//フレームレート落として表示
 			if (count % 2 == 0){
-			//	alphaBlend(foreground_img, result_img, alpha_img, result_img);
+				alphaBlend(foreground_img, result_img, alpha_img, result_img);
 				cv::namedWindow("RESULT IMAGE", cv::WINDOW_NORMAL);
 				cv::imshow("RESULT IMAGE", result_img);
 			}
