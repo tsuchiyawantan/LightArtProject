@@ -316,7 +316,6 @@ bool checkisEmpty(vector<int> check){
 }
 
 void createPeopleBackground(cv::Mat &result_image, vector<People> &videos, vector<int> &check, int count, int fps, bool ppl_flag){
-	if (count < 10) return;
 	if (ppl_flag){
 		if (checkisAvailable(check) && count % 20 == 0){
 			int i = getRandomNumfromVids(check);
@@ -335,14 +334,14 @@ void createPeopleBackground(cv::Mat &result_image, vector<People> &videos, vecto
 			}
 		}
 	}
-	
+
 	//fade
 	if (!ppl_flag){
 		//no people and no video frame
 		int check_counter = 0;
 		int l = 0;
 		for (auto itr = check.begin(); itr != check.end(); ++itr, l++){
-			if (*itr < 0) { 
+			if (*itr < 0) {
 				continue;
 			}
 			cv::Mat image;
@@ -357,13 +356,13 @@ void createPeopleBackground(cv::Mat &result_image, vector<People> &videos, vecto
 	}
 }
 
-void createBackground(cv::Mat &result_img, int depth_max){
+void createBackground(cv::Mat &result_img, int depth_min){
 	Effect effect;
-	if (depth_max < 1){
-		depth_max = 1000;
+	if (depth_min < 1 || depth_min > 6000){
+		return;
 	}
 	/* 2200 is the best */
-	double val = depth_max / 1000.0;
+	double val = depth_min / 1000.0;
 	if (val < 1) val = 1.0;
 	effect.applyFilteringMulti(result_img, result_img, 1.0 / sqrt(val));
 }
@@ -387,33 +386,35 @@ void main() {
 			ppl_flag = false;
 			depth.setRGB(rgb_img);
 			depth.setBodyDepth(ppl_flag);
-			depth.setNormalizeDepth(depth.bodyDepthImage);
-			depth.setContour(depth.normalizeDepthImage);
+			if (count > 10){
+				depth.setNormalizeDepth(depth.bodyDepthImage);
+				depth.setContour(depth.normalizeDepthImage);
 
-			//result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
-			result_img = cv::imread("street.jpg", cv::IMREAD_UNCHANGED);
-			createPeopleBackground(result_img, videos, check, count, fps, ppl_flag);
-			createBackground(result_img, depth.depthMax);
-			makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
-			//cv::GaussianBlur(result_img, result_img, cv::Size(21, 3), 20, 3);
+				if (depth.depthMin > 6000)
+					result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
+				else result_img = cv::imread("street.jpg", cv::IMREAD_UNCHANGED);
+				createPeopleBackground(result_img, videos, check, count, fps, ppl_flag);
+				createBackground(result_img, depth.depthMin);
+				makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
+				//cv::GaussianBlur(result_img, result_img, cv::Size(21, 3), 20, 3);
 
-			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
-				doAfterImg(result_img, depth.contourImage, afterimg_array, count);
-			}
-			else
-				/* 残像なしversion */
-				doDot(depth.contourImage, result_img);
+				if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
+					doAfterImg(result_img, depth.contourImage, afterimg_array, count);
+				}
+				else
+					/* 残像なしversion */
+					doDot(depth.contourImage, result_img);
 
-			//フレームレート落として表示
-			if (count % 2 == 0){
-				alphaBlend(foreground_img, result_img, alpha_img, result_img);
-				cv::namedWindow("RESULT IMAGE", cv::WINDOW_NORMAL);
-				cv::imshow("RESULT IMAGE", result_img);
+				//フレームレート落として表示
+				if (count % 2 == 0){
+					alphaBlend(foreground_img, result_img, alpha_img, result_img);
+					cv::namedWindow("RESULT IMAGE", cv::WINDOW_NORMAL);
+					cv::imshow("RESULT IMAGE", result_img);
+				}
 			}
 			count++;
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
-
 		}
 	}
 	catch (exception& ex) {
