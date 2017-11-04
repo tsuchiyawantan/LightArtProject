@@ -18,6 +18,7 @@
 #define EFFECT_FLAG 0
 #define BOX_WIDTH 20
 #define BOX_HEIGHT 20
+#define ISVIDEO true
 
 Dot dot;
 CatmullSpline catmull;
@@ -278,8 +279,9 @@ void alphaBlend(cv::Mat foreground_image, cv::Mat background_image, cv::Mat alph
 	cv::add(foreground_image, background_image, result_image);
 }
 
-void createBackGroundVideos(vector<People> &videos){
+void createBackGroundVideos(vector<People> &videos, vector<cv::Mat> &videos_forback, bool backgroundisVideo){
 	int count = 1;
+	cv::Mat cap_image;
 	//Capture recorded vids
 	while (true){
 		cv::VideoCapture cap("ppls/ppl_" + to_string(count) + ".avi");
@@ -290,6 +292,25 @@ void createBackGroundVideos(vector<People> &videos){
 		People people(cap);
 		videos.push_back(people);
 		count++;
+	}
+
+	if (backgroundisVideo){
+		cv::VideoCapture cap("fish.avi");
+		if (!cap.isOpened()) {
+			cout << "Unable to open the camera\n";
+			return exit(-1);
+		}
+
+		while (true) {
+			cap >> cap_image;
+			if (cap_image.empty()) {
+				std::cout << "Can't read frames from your camera\n";
+				break;
+			}
+			cv::cvtColor(cap_image, cap_image, cv::COLOR_BGR2GRAY);
+			cv::cvtColor(cap_image, cap_image, cv::COLOR_GRAY2BGR);
+			videos_forback.push_back(cap_image);
+		}
 	}
 }
 
@@ -359,7 +380,7 @@ void createPeopleBackground(cv::Mat &result_image, vector<People> &videos, vecto
 void createBackground(cv::Mat &result_img, int depth_min){
 	Effect effect;
 	if (depth_min < 1 || depth_min > 6000){
-		return;
+		depth_min = 6000;
 	}
 	/* 2200 is the best */
 	double val = depth_min / 1000.0;
@@ -367,19 +388,34 @@ void createBackground(cv::Mat &result_img, int depth_min){
 	effect.applyFilteringMulti(result_img, result_img, 1.0 / sqrt(val));
 }
 
+void getBackground(cv::Mat &result_image, vector<cv::Mat> videos_forback, int &count, bool is_video){
+	if (is_video){
+		cv::Mat clone;
+		if (count >= videos_forback.size()) count = 0;
+		clone = videos_forback.at(count).clone();
+		result_image = clone;
+	}
+	else{
+		//result_image = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
+		result_image = cv::imread("street.jpg", cv::IMREAD_UNCHANGED);
+	}
+}
+
 void main() {
 	try {
 		srand(time(NULL));
 		Depth depth;
 		vector<People> videos;
+		vector<cv::Mat> videos_forback;
 		cv::Mat rgb_img, result_img, ppl_img, temp_img, dummy, alpha_img, foreground_img;
 		vector<cv::Mat> afterimg_array;
 		vector<int> check;
 		int fps = 30;
 		int count = 0;
+		int video_count = 0;
 		bool ppl_flag;
 
-		createBackGroundVideos(videos);
+		createBackGroundVideos(videos, videos_forback, ISVIDEO);
 		check.resize(videos.size(), -1);
 
 		while (1) {
@@ -389,14 +425,12 @@ void main() {
 			if (count > 10){
 				depth.setNormalizeDepth(depth.bodyDepthImage);
 				depth.setContour(depth.normalizeDepthImage);
+				result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
 
-				if (depth.depthMin > 6000)
-					result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
-				else result_img = cv::imread("street.jpg", cv::IMREAD_UNCHANGED);
+				getBackground(result_img, videos_forback, video_count, ISVIDEO);
 				createPeopleBackground(result_img, videos, check, count, fps, ppl_flag);
 				createBackground(result_img, depth.depthMin);
 				makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
-				//cv::GaussianBlur(result_img, result_img, cv::Size(21, 3), 20, 3);
 
 				if (EFFECT_FLAG){			/* EFFECT_FLAG=1Ç»ÇÁÇŒÅAécëúÇ†ÇËversion */
 					doAfterImg(result_img, depth.contourImage, afterimg_array, count);
@@ -413,6 +447,7 @@ void main() {
 				}
 			}
 			count++;
+			video_count++;
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
 		}
