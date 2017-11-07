@@ -13,12 +13,12 @@
 #include "Graph.h"
 #include "People.h"
 
-#define HUE 60
+#define HUE 300
 #define SPACESIZE 10
 #define EFFECT_FLAG 0
 #define BOX_WIDTH 20
 #define BOX_HEIGHT 20
-#define ISVIDEO true
+#define ISVIDEO false
 
 Dot dot;
 CatmullSpline catmull;
@@ -377,15 +377,20 @@ void createPeopleBackground(cv::Mat &result_image, vector<People> &videos, vecto
 	}
 }
 
-void createBackground(cv::Mat &result_img, int depth_min){
-	Effect effect;
-	if (depth_min < 1 || depth_min > 6000){
-		depth_min = 6000;
+void createBackground(cv::Mat &result_img, int depth_min, int &filter, Effect effect, bool ppl_flag){
+	if (filter > 10000) filter = 10000;
+	if (!ppl_flag) filter = filter + 1000;
+	else {
+		if (filter < depth_min) filter = filter + 1000;
+		else if (filter > depth_min) filter = filter - 1000;
 	}
 	/* 2200 is the best */
-	double val = depth_min / 1000.0;
-	if (val < 1) val = 1.0;
-	effect.applyFilteringMulti(result_img, result_img, 1.0 / sqrt(val));
+	double val = filter / 1000.0;
+	if (val >= 10) effect.applyFilteringMulti(result_img, result_img, 0);
+	else {
+		if (val < 1) val = 1.0;
+		effect.applyFilteringMulti(result_img, result_img, 1.0 / sqrt(val));
+	}
 }
 
 void getBackground(cv::Mat &result_image, vector<cv::Mat> videos_forback, int &count, bool is_video){
@@ -405,6 +410,7 @@ void main() {
 	try {
 		srand(time(NULL));
 		Depth depth;
+		Effect effect;
 		vector<People> videos;
 		vector<cv::Mat> videos_forback;
 		cv::Mat rgb_img, result_img, ppl_img, temp_img, dummy, alpha_img, foreground_img;
@@ -413,6 +419,7 @@ void main() {
 		int fps = 30;
 		int count = 0;
 		int video_count = 0;
+		int filter = 10000;
 		bool ppl_flag;
 
 		createBackGroundVideos(videos, videos_forback, ISVIDEO);
@@ -429,7 +436,7 @@ void main() {
 
 				getBackground(result_img, videos_forback, video_count, ISVIDEO);
 				createPeopleBackground(result_img, videos, check, count, fps, ppl_flag);
-				createBackground(result_img, depth.depthMin);
+				createBackground(result_img, depth.depthMin, filter, effect, ppl_flag);
 				makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
 
 				if (EFFECT_FLAG){			/* EFFECT_FLAG=1Ç»ÇÁÇŒÅAécëúÇ†ÇËversion */
