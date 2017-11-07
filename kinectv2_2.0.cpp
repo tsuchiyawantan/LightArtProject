@@ -336,9 +336,9 @@ bool checkisEmpty(vector<int> check){
 	return true;
 }
 
-void createPeopleBackground(cv::Mat &result_image, vector<People> &videos, vector<int> &check, int count, int fps, bool ppl_flag){
-	if (ppl_flag){
-		if (checkisAvailable(check) && count % 20 == 0){
+void createPeopleBackground(cv::Mat &result_image, vector<People> &videos, vector<int> &check, int count, int fps, int ppl_count){
+	if (ppl_count > 20){
+		if (checkisAvailable(check) && count % 15 == 0){
 			int i = getRandomNumfromVids(check);
 			check.at(i) = 1;
 		}
@@ -357,35 +357,22 @@ void createPeopleBackground(cv::Mat &result_image, vector<People> &videos, vecto
 	}
 
 	//fade
-	if (!ppl_flag){
-		//no people and no video frame
-		int check_counter = 0;
-		int l = 0;
-		for (auto itr = check.begin(); itr != check.end(); ++itr, l++){
-			if (*itr < 0) {
-				continue;
-			}
-			cv::Mat image;
-			videos.at(l).getPics(image, fps);
-			if (!image.empty()){
-				cv::bitwise_or(image, result_image, result_image);
-			}
-			else {
-				*itr = -1;
-			}
-		}
+	if (ppl_count < 0){
+		check.clear();
+		check.shrink_to_fit();
+		check.resize(videos.size(), -1);
 	}
 }
 
 void createBackground(cv::Mat &result_img, int depth_min, int &filter, Effect effect, bool ppl_flag){
-	if (filter > 10000) filter = 10000;
-	if (!ppl_flag) filter = filter + 1000;
+	if (!ppl_flag) filter = filter + 2200;
 	else {
-		if (filter < depth_min) filter = filter + 1000;
-		else if (filter > depth_min) filter = filter - 1000;
+		if (filter < depth_min) filter = filter + 2200;
+		else if (filter > depth_min) filter = filter - 2200;
 	}
+	if (filter >= 22000) filter = 22000;
 	/* 2200 is the best */
-	double val = filter / 1000.0;
+	double val = filter / 2200.0;
 	if (val >= 10) effect.applyFilteringMulti(result_img, result_img, 0);
 	else {
 		if (val < 1) val = 1.0;
@@ -419,7 +406,8 @@ void main() {
 		int fps = 30;
 		int count = 0;
 		int video_count = 0;
-		int filter = 10000;
+		int filter = 22000;
+		int ppl_count = -1;
 		bool ppl_flag;
 
 		createBackGroundVideos(videos, videos_forback, ISVIDEO);
@@ -430,12 +418,14 @@ void main() {
 			depth.setRGB(rgb_img);
 			depth.setBodyDepth(ppl_flag);
 			if (count > 10){
+				if (ppl_flag) ppl_count++;
+				else ppl_count = -1;
 				depth.setNormalizeDepth(depth.bodyDepthImage);
 				depth.setContour(depth.normalizeDepthImage);
 				result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
 
 				getBackground(result_img, videos_forback, video_count, ISVIDEO);
-				createPeopleBackground(result_img, videos, check, count, fps, ppl_flag);
+				createPeopleBackground(result_img, videos, check, count, fps, ppl_count);
 				createBackground(result_img, depth.depthMin, filter, effect, ppl_flag);
 				makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
 
