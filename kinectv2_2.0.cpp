@@ -364,19 +364,20 @@ void createPeopleBackground(cv::Mat &result_image, vector<People> &videos, vecto
 	}
 }
 
-void createBackground(cv::Mat &result_img, int depth_min, int &filter, Effect effect, bool ppl_flag){
-	if (!ppl_flag) filter = filter + 2200;
-	else {
-		if (filter < depth_min) filter = filter + 2200;
-		else if (filter > depth_min) filter = filter - 2200;
+void createBackground(cv::Mat &result_img, int depth_min, double &filter, Effect effect, bool ppl_flag){
+	if (!ppl_flag){
+		if (filter != 0.0) filter -= 0.1;
+		if (filter < 0) filter = 0;
+		effect.applyFilteringMulti(result_img, result_img, filter);
 	}
-	if (filter >= 22000) filter = 22000;
-	/* 2200 is the best */
-	double val = filter / 2200.0;
-	if (val >= 10) effect.applyFilteringMulti(result_img, result_img, 0);
-	else {
-		if (val < 1) val = 1.0;
-		effect.applyFilteringMulti(result_img, result_img, 1.0 / sqrt(val));
+	else{
+		if (depth_min < 1000) filter = filter;
+		else { 
+			double dummy_filter = 1.0 / (depth_min / 1000.0); 
+			if (dummy_filter - filter > 0.1) filter += 0.1;
+			else filter = dummy_filter;
+		}
+		effect.applyFilteringMulti(result_img, result_img, filter);
 	}
 }
 
@@ -406,7 +407,7 @@ void main() {
 		int fps = 30;
 		int count = 0;
 		int video_count = 0;
-		int filter = 22000;
+		double filter = 0.0;
 		int ppl_count = -1;
 		bool ppl_flag;
 
