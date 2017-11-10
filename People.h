@@ -70,7 +70,7 @@ public:
 		else index++;
 	}
 
-	int getPics(cv::Mat &image, int fps){
+	int getPics(cv::Mat &image){
 		int index = getIndex();
 		if (index > pics.size() - 1){
 			setIndex(0);
