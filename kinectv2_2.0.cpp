@@ -258,7 +258,6 @@ void main() {
 				doAfterImg(result_img, depth.contourImage, afterimg_array, count);
 			}
 			else
-				/* Žc‘œ‚È‚µversion */
 				doDot(depth.contourImage, result_img);
 		//	cv::imwrite("resultimage/image" + to_string(count) + ".png", result_img);
 
