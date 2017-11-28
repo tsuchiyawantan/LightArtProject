@@ -77,6 +77,7 @@ public:
 						//	cv::line(wow, cv::Point(first_x, first_y), cv::Point(next_x, next_y), cv::Scalar(b, g, r), size, 4);
 						k++;
 					}
+
 				}
 				else if (first_node->isAngularNode() && next_node->isAngularNode()){
 					limit = k + (1.0 / T_SIZE);
