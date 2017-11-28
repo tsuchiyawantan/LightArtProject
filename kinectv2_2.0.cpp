@@ -14,7 +14,7 @@
 #include "People.h"
 
 #define SPACESIZE 10
-#define EFFECT_FLAG 1
+#define EFFECT_FLAG 0
 #define BOX_WIDTH 20
 #define BOX_HEIGHT 20
 #define ISVIDEO false
@@ -461,11 +461,11 @@ void main() {
 				depth.setContour(depth.normalizeDepthImage);
 				result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
 
-				//getBackground(result_img, videos_forback, video_count, depth.depthMin, ppl_flag, 2);
-				//createPeopleBackground(result_img, videos, check, count, ppl_count, depth.depthMin);
-				//createBackground(result_img, depth.depthMin, filter, effect, ppl_flag);
-				//makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
-
+				getBackground(result_img, videos_forback, video_count, depth.depthMin, ppl_flag, 2);
+				createPeopleBackground(result_img, videos, check, count, ppl_count, depth.depthMin);
+				createBackground(result_img, depth.depthMin, filter, effect, ppl_flag);
+				makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
+				
 				if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
 					doAfterImg(result_img, depth.contourImage, afterimg_array, count, 300);
 				}
@@ -474,7 +474,7 @@ void main() {
 					doDot(depth.contourImage, result_img, 20);
 				//フレームレート落として表示
 				if (count % 2 == 0){
-					//alphaBlend(foreground_img, result_img, alpha_img, result_img);
+					alphaBlend(foreground_img, result_img, alpha_img, result_img);
 					cv::namedWindow("RESULT IMAGE", cv::WINDOW_NORMAL);
 					cv::imshow("RESULT IMAGE", result_img);
 				}
