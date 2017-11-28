@@ -433,27 +433,6 @@ void main() {
 			ppl_flag = false;
 			depth.setRGB(rgb_img);
 			depth.setBodyDepth(ppl_flag);
-<<<<<<< HEAD
-			depth.setNormalizeDepth(depth.bodyDepthImage);
-			depth.setContour(depth.normalizeDepthImage);
-
-			result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
-		//	createBackGround(result_img, videos, check, count, fps, ppl_flag);
-		//	makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
-		//	cv::GaussianBlur(result_img, result_img, cv::Size(21, 3), 20, 3);
-
-			if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
-				doAfterImg(result_img, depth.contourImage, afterimg_array, count);
-			}
-			else
-				doDot(depth.contourImage, result_img);
-
-			//フレームレート落として表示
-			if (count % 2 == 0){
-			//	alphaBlend(foreground_img, result_img, alpha_img, result_img);
-				cv::namedWindow("RESULT IMAGE", cv::WINDOW_NORMAL);
-				cv::imshow("RESULT IMAGE", result_img);
-=======
 			if (count > 10){
 				if (ppl_flag) ppl_count++;
 				else ppl_count = -1;
@@ -478,7 +457,6 @@ void main() {
 					cv::namedWindow("RESULT IMAGE", cv::WINDOW_NORMAL);
 					cv::imshow("RESULT IMAGE", result_img);
 				}
->>>>>>> 7fc7886964d8934a59c6e42226108528dab92c9d
 			}
 			count++;
 			video_count++;
