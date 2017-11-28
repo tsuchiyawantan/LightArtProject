@@ -13,11 +13,11 @@
 #include "Graph.h"
 #include "People.h"
 
-#define HUE 60
 #define SPACESIZE 10
 #define EFFECT_FLAG 1
 #define BOX_WIDTH 20
 #define BOX_HEIGHT 20
+#define ISVIDEO false
 
 Dot dot;
 CatmullSpline catmull;
@@ -44,10 +44,10 @@ void doIm(cv::Mat &result_img, vector<vector<Node *>> node_array, int rows, int 
 	cv::imshow("corner", image);
 }
 
-void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array){
+void doCatmull(cv::Mat &result_img, vector<vector<Node *>> node_array, int hue){
 	catmull.init();
-	catmull.drawLine(result_img, node_array, HUE);
-	catmull.drawInlineHanddraw(result_img, node_array, HUE);
+	catmull.drawLine(result_img, node_array, hue);
+	catmull.drawInlineHanddraw(result_img, node_array, hue);
 	/* 手描き風じゃない線の表示 */
 	//catmull.drawInline(result_img, node_array, HUE);
 	//doIm(result_img, node_array, result_img.rows, result_img.cols);
@@ -190,7 +190,7 @@ void copyNodesInfo(cv::Mat &src_img, vector<vector<vector<Node *>>> &box_node, v
 	}
 }
 
-void doDot(cv::Mat &src_img, cv::Mat &result_img){
+void doDot(cv::Mat &src_img, cv::Mat &result_img, int hue){
 	vector<vector<Node *>> node_array;
 
 	dot.init();
@@ -199,7 +199,7 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	dot.makeLine(src_img);
 	dot.divideCon(SPACESIZE);
 	doGraph(node_array);
-	doCatmull(result_img, node_array);
+	doCatmull(result_img, node_array, hue);
 
 	if (former_node_array.size()) {
 		removeFormerNodes();
@@ -216,10 +216,10 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	}
 }
 
-void doAfterImg(cv::Mat &result_img, cv::Mat depthcontour_img, vector<cv::Mat> &afterimg_array, int count){
+void doAfterImg(cv::Mat &result_img, cv::Mat depthcontour_img, vector<cv::Mat> &afterimg_array, int count, int hue){
 	//1回目はdotから始めて、2回目以降はeffectかけたresultがほしいので、effectから始める
 	if (afterimg_array.size() == 0){
-		doDot(depthcontour_img, result_img);
+		doDot(depthcontour_img, result_img, hue);
 		//1枚目を明るさ下げてarrayに保存
 		effect.addAfterImg(result_img, afterimg_array);
 	}
@@ -230,7 +230,7 @@ void doAfterImg(cv::Mat &result_img, cv::Mat depthcontour_img, vector<cv::Mat> &
 		}
 
 		//上で得られたresult_imgを背景にして線を上書きする
-		doDot(depthcontour_img, result_img);
+		doDot(depthcontour_img, result_img, hue);
 		//この時の線をarrayに追加する
 		effect.addAfterImg(result_img, afterimg_array);
 	}
@@ -278,7 +278,7 @@ void alphaBlend(cv::Mat foreground_image, cv::Mat background_image, cv::Mat alph
 	cv::add(foreground_image, background_image, result_image);
 }
 
-void createBackGroundVideos(vector<People> &videos){
+void capturePeopleVideo(vector<People> &videos){
 	int count = 1;
 	//Capture recorded vids
 	while (true){
@@ -290,6 +290,28 @@ void createBackGroundVideos(vector<People> &videos){
 		People people(cap);
 		videos.push_back(people);
 		count++;
+	}
+}
+
+void captureBackgroundVideo(vector<cv::Mat> &videos_forback, int is_video){
+	cv::Mat cap_image;
+	if (is_video != 1){
+		cv::VideoCapture cap("street.avi");
+		if (!cap.isOpened()) {
+			cout << "Unable to open the camera\n";
+			return exit(-1);
+		}
+
+		while (true) {
+			cap >> cap_image;
+			if (cap_image.empty()) {
+				std::cout << "Can't read frames from your camera\n";
+				break;
+			}
+			cv::cvtColor(cap_image, cap_image, cv::COLOR_BGR2GRAY);
+			cv::cvtColor(cap_image, cap_image, cv::COLOR_GRAY2BGR);
+			videos_forback.push_back(cap_image);
+		}
 	}
 }
 
@@ -315,10 +337,9 @@ bool checkisEmpty(vector<int> check){
 	return true;
 }
 
-void createBackGround(cv::Mat &result_image, vector<People> &videos, vector<int> &check, int count, int fps, bool ppl_flag){
-	if (count < 10) return;
-	if (ppl_flag){
-		if (checkisAvailable(check) && count % 20 == 0){
+void createPeopleBackground(cv::Mat &result_image, vector<People> &videos, vector<int> &check, int count, int ppl_count, int depth_min){
+	if (ppl_count > 20){
+		if (checkisAvailable(check) && (count % 50 == 0 || (depth_min < 2000 && count % 15 == 0))){
 			int i = getRandomNumfromVids(check);
 			check.at(i) = 1;
 		}
@@ -326,7 +347,7 @@ void createBackGround(cv::Mat &result_image, vector<People> &videos, vector<int>
 		for (auto itr = check.begin(); itr != check.end(); ++itr, l++){
 			if (*itr < 0) continue;
 			cv::Mat image;
-			videos.at(l).getPics(image, fps);
+			videos.at(l).getPics(image);
 			if (!image.empty()){
 				cv::bitwise_or(image, result_image, result_image);
 			}
@@ -335,24 +356,54 @@ void createBackGround(cv::Mat &result_image, vector<People> &videos, vector<int>
 			}
 		}
 	}
-	
+
 	//fade
+	if (ppl_count < 0){
+		check.clear();
+		check.shrink_to_fit();
+		check.resize(videos.size(), -1);
+	}
+}
+
+void createBackground(cv::Mat &result_img, int depth_min, double &filter, Effect effect, bool ppl_flag){
 	if (!ppl_flag){
-		//no people and no video frame
-		int check_counter = 0;
-		int l = 0;
-		for (auto itr = check.begin(); itr != check.end(); ++itr, l++){
-			if (*itr < 0) { 
-				continue;
-			}
-			cv::Mat image;
-			videos.at(l).getPics(image, fps);
-			if (!image.empty()){
-				cv::bitwise_or(image, result_image, result_image);
-			}
-			else {
-				*itr = -1;
-			}
+		if (filter > 0) filter -= 0.05;
+		if (filter < 0) filter = 0;
+		effect.applyFilteringMulti(result_img, result_img, filter);
+	}
+	else{
+		if (depth_min < 1000) filter = filter;
+		else { 
+			double dummy_filter = 1.0 / (depth_min / 1000.0); 
+			if (dummy_filter - filter > 0.1) filter += 0.05;
+			else filter = dummy_filter;
+		}
+		effect.applyFilteringMulti(result_img, result_img, filter);
+	}
+}
+
+//is_video=0 video
+//is_video=1 picture
+//is_video=2 interactive video
+void getBackground(cv::Mat &result_image, vector<cv::Mat> videos_forback, int &count, int depth_min, bool ppl_flag, int is_video){
+	if (is_video == 0){
+		cv::Mat clone;
+		if (count >= videos_forback.size()) count = 0;
+		clone = videos_forback.at(count).clone();
+		result_image = clone;
+	}
+	else if(is_video == 1){
+		//result_image = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
+		result_image = cv::imread("street.jpg", cv::IMREAD_ANYCOLOR);
+	}
+	else if (is_video == 2){
+		if (!ppl_flag){
+			result_image = videos_forback.at(0).clone();
+		}
+		if (ppl_flag){
+			int num = (depth_min / 500) / 2;
+			if (num > videos_forback.size()) num = videos_forback.size() - 1;
+			result_image = videos_forback.at(num).clone();
 		}
 	}
 }
@@ -361,22 +412,28 @@ void main() {
 	try {
 		srand(time(NULL));
 		Depth depth;
+		Effect effect;
 		vector<People> videos;
+		vector<cv::Mat> videos_forback;
 		cv::Mat rgb_img, result_img, ppl_img, temp_img, dummy, alpha_img, foreground_img;
 		vector<cv::Mat> afterimg_array;
-		vector<cv::Mat> ppl_back;
 		vector<int> check;
 		int fps = 30;
 		int count = 0;
+		int video_count = 0;
+		double filter = 0.0;
+		int ppl_count = -1;
 		bool ppl_flag;
 
-		createBackGroundVideos(videos);
+		capturePeopleVideo(videos);
+		captureBackgroundVideo(videos_forback, 2);
 		check.resize(videos.size(), -1);
 
 		while (1) {
 			ppl_flag = false;
 			depth.setRGB(rgb_img);
 			depth.setBodyDepth(ppl_flag);
+<<<<<<< HEAD
 			depth.setNormalizeDepth(depth.bodyDepthImage);
 			depth.setContour(depth.normalizeDepthImage);
 
@@ -396,11 +453,37 @@ void main() {
 			//	alphaBlend(foreground_img, result_img, alpha_img, result_img);
 				cv::namedWindow("RESULT IMAGE", cv::WINDOW_NORMAL);
 				cv::imshow("RESULT IMAGE", result_img);
+=======
+			if (count > 10){
+				if (ppl_flag) ppl_count++;
+				else ppl_count = -1;
+				depth.setNormalizeDepth(depth.bodyDepthImage);
+				depth.setContour(depth.normalizeDepthImage);
+				result_img = cv::Mat(depth.depthHeight, depth.depthWidth, CV_8UC3, cv::Scalar(0, 0, 0));
+
+				//getBackground(result_img, videos_forback, video_count, depth.depthMin, ppl_flag, 2);
+				//createPeopleBackground(result_img, videos, check, count, ppl_count, depth.depthMin);
+				//createBackground(result_img, depth.depthMin, filter, effect, ppl_flag);
+				//makeOverwriteImage(depth.normalizeDepthImage, foreground_img, alpha_img);
+
+				if (EFFECT_FLAG){			/* EFFECT_FLAG=1ならば、残像ありversion */
+					doAfterImg(result_img, depth.contourImage, afterimg_array, count, 300);
+				}
+				else
+					/* 残像なしversion */
+					doDot(depth.contourImage, result_img, 20);
+				//フレームレート落として表示
+				if (count % 2 == 0){
+					//alphaBlend(foreground_img, result_img, alpha_img, result_img);
+					cv::namedWindow("RESULT IMAGE", cv::WINDOW_NORMAL);
+					cv::imshow("RESULT IMAGE", result_img);
+				}
+>>>>>>> 7fc7886964d8934a59c6e42226108528dab92c9d
 			}
 			count++;
+			video_count++;
 			auto key = cv::waitKey(20);
 			if (key == 'q') break;
-
 		}
 	}
 	catch (exception& ex) {

@@ -38,7 +38,7 @@ public:
 		updateBodyIndexFrame();
 		bodyDepthImage = cv::Mat(depthHeight, depthWidth, CV_16UC1);
 		depthMax = -1;
-		depthMin = INFINITE;
+		depthMin = numeric_limits<int>::max();
 		for (int i = 0; i < bodyIndexHeight*bodyIndexWidth; i++) {
 			int y = i / bodyIndexWidth;
 			int x = i % bodyIndexWidth;
@@ -60,7 +60,9 @@ public:
 			int x = i % srcImg.cols;
 			if (bodyIndexBuffer[i] == 255) normalizeDepthImage.at<UCHAR>(y, x) = 255;
 			else {
-				normalizeDepthImage.at<UCHAR>(y, x) = (199 * (srcImg.at<UINT16>(y, x)) / (depthMax - depthMin));
+				int max_min = depthMax;
+				if (max_min < 1) max_min = 1;
+				normalizeDepthImage.at<UCHAR>(y, x) = (199 * (srcImg.at<UINT16>(y, x)) / max_min);
 			}
 		}
 	}
